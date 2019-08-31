@@ -27,7 +27,7 @@
 				<section class="cover" data-background="figures/background_blurred.jpg" data-state="no-title-footer no-progressbar has-dark-background">
 					<h1 style="color:white">EUSIPCO 2019, Coruña</h1>
 					<h2 id='coverh2'>Cauchy Multichannel Speech Enhancement with a Deep Speech Prior</h2>
-					<h3><a href="https://anr-kamoulox.github.io">anr-kamoulox.github.io</a></h3>
+					<h3><a href="https://matfontaine.github.io">matfontaine.github.io</a></h3>
 					<p id='coverauthors'>
 						Mathieu FONTAINE<br />
 						fontaine.mathieu2@gmail.com
@@ -125,17 +125,17 @@
 		<ul><li>Spatial density: contain spatial correlation information in each directions</li></ul>
 	</aside>
 	<h1 style="margin-bottom:0.3em;">Cauchy Distribution</h1>
-	$\mathbf{y} \sim \mathcal{C}_{\mathbb{C}}^{K}\!\left(\mathbf{y} | \bold{\mu}, \mathbf{V} \right)$ follows a <span style="font-weight:bold;">circularly-symmetric multivariate complex Cauchy distribution</span>  of dimension K iff. its probability density$p_{ \bold{\mu},\mathbf{V}}$ is
+	$\mathbf{y} \sim \mathcal{C}_{c}^{K}\!\left(\mathbf{y} | \bold{\mu}, \mathbf{V} \right)$ follows a <span style="font-weight:bold;">circularly-symmetric multivariate complex Cauchy distribution</span>  of dimension K iff. its probability density$p_{ \bold{\mu},\mathbf{V}}$ is
 			<center> $$
 					 p_{ \bold{\mu},\mathbf{V}}\!\left(\mathbf{y}\right)
 					 =A_{K,\mathbf{V}}\left(1+\left(\mathbf{y} - \bold{\mu}\right)^{H}\mathbf{V}^{-1}\left(\mathbf{y} - \bold{\mu}\right)\right)^{-K-\frac{1}{2}},
 			 $$</center>
 			 where
-			 <center>$$
+			 <center style="margin-bottom:0.2em;">$$
 					 A_{K,\mathbf{V}}
 					 =\prod_{k=1}^{K}\left(K-k+\frac{1}{2}\right)\pi^{-K}\det\left(\mathbf{V}\right)^{-1}
 			 $$</center>
-			 In$\mathbb{R}$ with$K=1$:</br>
+			 Real Cauchy distribution with$K=1$:</br>
 			 <div class="multiCol">
 				<div class="col">
 			 <img src="figures/pdf_cau_gau.png">
@@ -162,93 +162,136 @@
 		<ul><li>Inspired by the gaussian model</li></ul>
 	</aside>
 <h1>Sources Model</h1>
-<h2>Spatial representation theorem</h2>
-<span style="text-align:center;">$$
-\bold{x}\sim S\alpha S_{c}^{K}\left(\Gamma_{\bold{x}}\right) \Leftrightarrow \bold{x}=^d\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\bold{\theta}\mathcal{X}\left(d\bold{\theta}\right)
-$$</span>
-<img src="figures/vector_decomposition.png" alt="" style="float-align:center; margin-top:0.5em; margin-left:3.5em;" width="100%">
-
+<img src="figures/montage_cauchy.png" width="80%" style="margin-left:3em;">
+		<div class="question" style="margin-top: 0.4em;">Which filtering method is suitable ?</div>
+		<div class="references" style="margin-top:0.6em;">
+			<ul><li>C. Févotte and al (2011). Algorithms for nonnegative matrix factorization
+				      with the β-divergence.</li></ul>
+		</div>
 </section>
 
 	<section>
-	<h1>Example: mixture of$\alpha-$ stable vectors</h1>
-	<div class="multiCol">
-		<div class="col">
-			<center><img src="figures/VM_sources.png" alt="" style="float:center; background-color; margin-top:-0.4em;" width="90%"></center>
-		</div>
-		<div class="col">
-			<center><img src="figures/VM_mix.png" alt="" style="float:center; background-color; margin-top:-0.4em;" width="92%"></center>
-		</div>
-	</div>
-	We assume that:</br>
-	<ul><li>$\bold{x}=\sum_{j=1}^{J}\bold{y}_{j};~~\forall j,\,\bold{y}_{j}\sim S\alpha S_{c}^{K}\left(\Gamma_{j}\right) \Rightarrow \bold{x}\sim S\alpha S_{c}^{K}\left(\Gamma_{\bold{x}}\triangleq\sum_j\Gamma_j\right)$</li>
-	<li>The representation theorem gives : $\forall j,\:\bold{y}_{j}=^d\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\bold{\theta}\mathcal{Y}_{j}\left(d\bold{\theta}\right) \Rightarrow \mathcal{X}\triangleq\sum_{j}\mathcal{Y}_{j}$
-	 defines a spatial spectrum associated to$\bold{x}$</li>
-	</ul>
-	</section>
-
+	<h1 style="margin-top:-0.1em; margin-bottom:0.1em;">Projection-Based Wiener Filter</h1>
+  Projection of observation vectors$\bold{x}_{ft} \in \mathbb{C}^K$ to$\mathbb{C}$:
+<span style="text-align:center;">$$
+	x_{mft} = \mathbf{u}_{m}^{H}\mathbf{x}_{ft}
+						 \ \mathrm{for} \ \forall m,f,t
+	$$</span></br>
+	where$\bold{u}_m \in \mathbb{C}^{K}$ and $x_{mft}\in \mathbb{C}$ is the $\text{m}^{\text{th}}$-projection of $\bold{x}_{ft}$. We have then:
+<span style="text-align:center;">$$
+ \hat{x}^{s}_{mft}\triangleq\mathbb{E}\left[\mathbf{u}_m^{H}x^{s}_{ft}| x_{mft},\bold{\Psi}\right]
+  = \sqrt{\frac{v^{s}_{mft}}{v_{mft}}}x_{mft},$$</span></br>
+	where
+	<span style="text-align:center;">
+$$
+\begin{cases}
+							  v^{s}_{mft} = a^{s}_{ft} \mathbf{u}_{m}^{H}\mathbf{R}^{s}_{f}\mathbf{u}_{m},\\
+                v^{n}_{mft} = a^{n}_{ft} \mathbf{u}_{m}^{H}\mathbf{R}^{n}_{f}\mathbf{u}_{m},\\
+                v_{mft} = \left(\sqrt{v^{s}_{mft}} + \sqrt{v^{n}_{mft}}\right)^2 ,
+                \end{cases}~~~~~\text{and} ~~~~~\bold{\Psi} \triangleq \left\{a^{s}_{ft}, a^{n}_{ft}, \mathbf{R}^{s}_{f}, \mathbf{R}^{n}_{f}\right\}.
+$$</span></br>
+An estimator$\hat{\bold{x}}_{ft}^{s}$ of$\bold{x}_{ft}^{s}$ is:
+	<span style="text-align:center;">
+$$
+ \hat{\mathbf{x}}^{s}_{ft} = \mathbf{U^{\dagger}}\left[\hat{x}^{s}_{1ft}, \cdots, \hat{x}^{s}_{mft}\right]^{T}
+$$
+</span></br>
+with $\mathbf{U}\triangleq\left[\mathbf{u}_1,\cdots, \mathbf{u}_M\right]^{H}\in \mathbb{C}^{M\times K}$ and $.^{\dagger}$ the pseudo-inverse operator.
+<div class="references" style="margin-top:0.2em;">
+	<ul><li>A. Liutkus and al (2016). PROJET - Spatial Audio Separation Using Projections.</li></ul>
+</div>
+</section>
+<section class="cover" data-background="figures/background.jpg" data-state="no-title-footer no-progressbar has-dark-background">
+	<h2 id='coverh2'>III: Parameter Estimation</h2>
+	<aside class="notes">
+	</aside>
+</section>
 	<section>
-		<h1>Spatial spectrum filter</h1>
-		<h2>Estimator criterion</h2>
-		<ul><li>$\hat{\mathcal{X}}\left(d\bold{\theta}\right)$ such that for any function$\psi$ satisfying
-			 $\int_{\bold{\theta}\in S_{\mathbb{C}}^{K}}\left|\psi\left(\bold{\theta}\right)\right|^{\alpha}\Gamma_{\bold{x}}\left(d\bold{\theta}\right)<+\infty$:</li>
-		</ul>
-		<span style="text-align:center;">$$\mathbb{E}\left[\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\psi\left(\bold{\theta}\right)
-			\mathcal{X}\left(d\bold{\theta}\right)\,\bigg|\,\bold{x}\right]=
-			\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\psi\left(\bold{\theta}\right)\hat{\mathcal{X}}\left(d\bold{\theta}\right)$$</span>
-		<h2>Estimation of$\mathcal{X}$</h2>
-			<ul><li>$\hat{\mathcal{X}}\left(d\bold{\theta}\right)$ can be rewritten as $g_{_{_\mathcal{X}}}\left(\bold{x},\bold{\theta}\right)\Gamma_{x}\left(d\bold{\theta}\right)$ where$g_{_{_\mathcal{X}}}$ is a fraction of two integrals along the hypersphere$\mathcal{S}_{\mathbb{C}}^{K}$ which depends
-				of $\theta$, the Levy-exponent $I_x \triangleq-\log \varphi_x$ and two series which can be pre-computed.</li>
-			</ul>
-		<h2>Separation</h2>
-		<ul><li> We proved that:</li></ul>
-		<span style="text-align:center;">$$\hat{\bold{y}}_{j}\triangleq\mathbb{E}\left[\bold{y}_{j}\big|\bold{x}\right]=
-			\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\bold{\theta}g_{_{_\mathcal{X}}}\left(\bold{x},\bold{\theta}\right)\Gamma_{j}(d\bold{\theta})$$</span>
+		<h1>VAE for speech magnitude estimation (training phase)</h1>
+		<img src="figures/VAE_framework.png" width="80%" style="margin-left:6em;">
+		where model parameters $\theta, \phi$ are optimized by minimizing the negative log-likelihood:
+		<center>$$
+		-\ln p_\theta\left(\bold{a}_{t}^s\right) =
+		- \ln \! \int_{\mathbf{z}_{t}}
+        \frac{q_{\phi}(\mathbf{z}_{t} | \mathbf{a}^{s}_{t})}{q_{\phi}(\mathbf{z}_{t} | \mathbf{a}^{s}_{t})}
+        p_{\theta} (\mathbf{a}^{s}_{t}, \mathbf{z}_{t})
+        \mathrm{d} \mathbf{z}_{t} \leq \mathcal{L}^{\text{mag}} + \mathcal{L}^{\text{reg}}
+		$$</center></br>
+		<center>$$ \footnotesize{\mathcal{L}^{\text{mag}} \stackrel{c}{=} \frac{1}{T}
+            \!
+            \sum^{F,T}_{f,t=1} \!\!
+            \left(
+            \ln\!\left[\gamma_{\theta}(\mathbf{z}_t)\right]_f
+            + \ln\!\left(\! 1 + \frac{\big(a^{s}_{ft} - \left[\mu_{\theta}(\mathbf{z}_t)\right]_f\big)^2}{ \gamma_{ft}^2}\right)\!
+            \right);~~
+
+						\mathcal{L}^{\text{reg}} =\frac{1}{2T}
+        \!
+        \sum_{d,t=1}^{D,T}\!\!
+        \Bigg([\bold{\mu}_{\phi}^{q}(\mathbf{a}^{s}_{t})]_{d}^{2}
+        +[\bold{\sigma}_{\phi}^{q}
+        (\mathbf{a}^{s}_{t})]_{d}^{2}
+         -\ln [\bold{\sigma}_{\phi}^{q}(\mathbf{a}^{s}_{t})]_{d}^{2} - 1\Bigg).}
+
+		$$</center></br>
+with$p_{\theta} ( \mathbf{z}_{t} ) \sim \mathcal{N} ( \mathbf{z}_{t} | \mathbf{0}, \text{\textbf{I}} )$ and we take$\hat{\bold{a}}_t^s = \exp\left(\ln\bold{\mu}_t\right)$ from decoder output.
 	</section>
 
 	<section>
 		<aside class="notes">
 		<ul><li>Try to generalize Wiener filter which minimize the covariance norm between a source and the linear estimation of the source</li></ul>
 		</aside>
-		<h1> Covariation-minimizing filter (1/2)</h1>
-		<h2> Covariation & covariation norm</h2>
-		<ul><li> No $2^{nd}-$ order statistics for $\alpha < 2$</li>
-		<li> For $\alpha >1$ and $\bold{x}\triangleq\left(x_1,x_2\right)\sim S\alpha S_c^2\left(\Gamma_{\bold{x}}\right)$ the <b>covariation</b> is:
-		</ul>
-		<span style="text-align:center;">$$\left[x_{1},x_{2}\right]_{\alpha}\triangleq\int_{z=
-			\left(z_{1},z_{2}\right)\in\mathcal{S}_{\mathbb{C}}^{2}}z_{1}z_{2}^{\left\langle \alpha-1\right\rangle }\Gamma_{x}\left(dz\right)$$</span>
-		<ul>
-			<li> The <b>covariation norm</b> is:</li>
-		</ul>
-		<span style="text-align:center;">$$\left\Vert x\right\Vert {}_{\alpha}=\left(\left[x,x\right]_{\alpha}\right)^{1/\alpha}$$</span>
-		<h2>Covariation filtering technique</h2>
-		<ul>
-		<li> Linear estimator$\hat{y}_{jk}=\left\langle \bold{w}_{jk},\bold{x}\right\rangle$ + enforcement of perfect separation$\sum_{j}\bold{w}_{jk}=\bold{e}_{k}$</li>
-		<li> For each entries $k$, we have the following optimization problem:</li>
-	</ul>
-	<span style="text-align:center">$$\begin{array}{cc}
-				{\text{minimize}}_{\bold{w}_{jk}} & \sum_{j}\left\Vert y_{jk}-\left\langle \bold{w}_{jk},\bold{x}\right\rangle \right\Vert _{\alpha}^{\alpha}\\
-				\text{subject to} & \sum_{j}\bold{w}_{jk}=\bold{e}_{k}.
-				\end{array}$$</span>
+		<h1>Test phase</h1>
+		<h2 style="margin-top:-0.4em;">Deep Speech Prior & magnitude spectrogram of speech</h2>
+		<ul><li>Sampling from$q_{\phi}\left(\bold{z}_t \mid \left|\bold{x}_t\right|\right)$ by averaging$\left|\bold{x}_t\right|$ over channels $\Rightarrow \mu_\theta\left(z_t\right)$ and$\bold{a}_t^s$</li>
+		<li>Update of$\bold{z}_t$ by using backpropagation with a gradient descent method to minimize:
+		<center>$$            \!\!
+            D\left(v\right) \stackrel{c}{=}  \sum_{m,f,t=1}^{M,F,T}\frac{3}{2}\ln\left(v_{mft} + \left|x_{mft}\right|^2\right) - \frac{1}{2}\ln\left(v_{mft}\right)
+		$$</center></li></ul>
+		<h2>Magnitude spectrogram of noise & spatial scatter matrices</h2>
+		<ul><li>Use the Majorization-Equalization (ME) strategy to get:</li>
+		</br></ul>
+		$$
+		 {w}_{fl} \leftarrow \frac{1}{3}w_{fl}\frac{\sum_{mt}h_{lt}\psi^{n}_{mf}}{\sum_{mt}h_{lt}\psi^{n}_{mf}\xi_{mft}},
+     ~~
+		 {h}_{lt} \leftarrow \frac{1}{3}h_{lt}\frac{\sum_{mf}h_{fl}\psi^{n}_{mf}}{\sum_{mf}w_{fl}\psi^{n}_{mf}\xi_{mft}},
+     ~~
+		 {r}^j_{m'f}\leftarrow\frac{1}{3} {r}^j_{m'f}\frac{\sum_{mt}a^j_{ft}\eta^j_{mm'ft}}{\sum_{mt}\eta^j_{mm'ft}\xi_{mft}}
+		 $$</br>
+		 with$\forall j \in \{s,n\}$: $$\psi^{n}_{mf} \triangleq \frac{\mathbf{u}_{m}^{H}\mathbf{R}^{n}_{f}\mathbf{u}_{m}}{\sqrt{v^{n}_{mft}v_{mft}}},
+		 ~~
+		 \xi_{mft} \triangleq 1 + \frac{|x_{mft}|^{2}}{v_{mft}},
+		 ~~
+		 \eta^j_{mm'ft} \triangleq \frac{|\mathbf{u}_{m'}^{H}\mathbf{u}_{m}|^{2}}{\sqrt{v^j_{mft}v_{mft}}}
+     ~~\text{and}~\hat{\mathbf{R}}^j_{f} = \sum_{m^{\prime}} {r}^j_{m^{\prime},f}\mathbf{u}_{m^{\prime}}\mathbf{u}_{m^{\prime}}^{H}
+		 $$
 	</section>
-
+	<section class="cover" data-background="figures/background.jpg" data-state="no-title-footer no-progressbar has-dark-background">
+		<h2 id='coverh2'>IV: Evaluation</h2>
+		<aside class="notes">
+		</aside>
+	</section>
 	<section>
-		<h1> Covariation-minimizing filter (2/2)</h1>
-		<h2>Optimization problem</h2>
-		<ul><li>Karush-Kuhn-Tucker conditions are verified $\Rightarrow$ Existence of a unique solution</li>
-		<li style="margin-bottom:0.9em;"> Equivalent to solve the following fixed-point problem:</li>
+		<h1>Experimental conditions</h1>
+		<h2>Algorithms</h2>
+		<ul>
+			<li>Proposed Method: Cauchy <span style="font-style:italic";>VAE-MNMF</span></li>
+			<li> Similar model but on a Gaussian model: Gaussian <span style="font-style:italic";>VAE-MNMF</span> $\text{[Leg. 2018]}$</li>
+			<li>Cauchy NMF with speech NMF trained on clean speech: Cauchy<span style="font-style:italic";> MNMF</span>
 		</ul>
-		<span style="text-align:center;">$$\bold{P}_{jk}\leftarrow\int\left(\frac{\bold{\theta}\bold{\theta}^{\star}}{\left|\theta_{k}-\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}-\frac{\bold{\theta}\bold{\theta}^{\star}}{\left|\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}\right)\Gamma_{j}\left(d\bold{\theta}\right)+\int\frac{\bold{\theta}\bold{\theta}^{\star}}{\left|\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}\Gamma_{x}\left(d\bold{\theta}\right).$$</br>
-		$$\bold{\lambda}_{k}\leftarrow\left(\sum_{j}\bold{P}_{jk}^{-1}\right)^{-1}\left(
-		\sum_{j}\bold{P}_{jk}^{-1}\int\frac{\bold{\theta}\theta_{k}^{\star}}
-		{\left|\theta_{k}-\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}
-		\Gamma_{j}\left(d\bold{\theta}\right)-\bold{e}_{k}\right)$$</br>
-		$$\bold{w}_{jk}\leftarrow\bold{P}_{jk}^{-1}\left(\int\frac{\bold{\theta}\theta_{k}^{\star}}
-		{\left|\theta_{k}-\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}
-		\Gamma_{j}\left(d\bold{\theta}\right)-\bold{\lambda}_{k}\right)$$
-		</span>
-		<h2> Reconstruction </h2>
-		<ul><li>Use the estimated mask$\bold{w}_{jk}$:</li></ul><span style="text-align:center;">$$\forall j,k,\hat{y}_{jk}=\left\langle \bold{w}_{jk},\bold{x}\right\rangle $$</span>
+		<h2>Corpus</h2>
+		<ul>
+			<li>CHiME-4 corpus sampled at 16 kHZ</li>
+			<li>7138 single-channel clean speech signals for the DNN and MNMF training </li>
+			<li>1640 single-channel clean speech signals as the validation set for the DNN training </li>
+			<li> Evaluation done on 132 ($\simeq$ 10%) noisy utterances</li>
+		</ul>
+		<h2>Settings</h2>
+		<ul><li>Latent variable dimension of$\bold{z}_t:D=32$</li>
+		<li>Number of bases of the noise model$:L=32$</li>
+		<li>Projection matrix$\bold{U}$ is taken unitary $\bold{U}=\bold{U}^{\dagger}$ and$M=8$ projectors are sampled</li>
+		<li>$64$ optimization iterations for Cauchy <span style="font-style:italic";>MNMF</span> and$50$ for both <span style="font-style:italic";>VAE-MNMF</span> methods
+	</ul>
 	</section>
 
 	<section>
