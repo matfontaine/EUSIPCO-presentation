@@ -1,0 +1,1273 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=0.8, maximum-scale=1.0, user-scalable=no">
+
+		<title>Seminar EUSIPCO 2019</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/lirmm.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/github.css">
+		<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section class="cover" data-background="figures/background_blurred.jpg" data-state="no-title-footer no-progressbar has-dark-background">
+					<h1 style="color:white">EUSIPCO 2019, Coruña</h1>
+					<h2 id='coverh2'>Cauchy Multichannel Speech Enhancement with a Deep Speech Prior</h2>
+					<h3><a href="https://anr-kamoulox.github.io">anr-kamoulox.github.io</a></h3>
+					<p id='coverauthors'>
+						Mathieu FONTAINE<br />
+						fontaine.mathieu2@gmail.com
+					</p>
+					<p>
+					September 03rd, 2019
+					</p>
+					<img src="css/theme/img/inria-cover.svg" id="inria" class="logo" alt="">
+					<img src="figures/logos/telecom.svg" id="telecom" class="partners" alt="">
+				  <img src="figures/logos/lorraine.png" id="lorraine" class="partners" alt="">
+					<img src="figures/logos/kyoto.jpg" id="lorraine" class="partners" alt="">
+					<img src="figures/logos/RIKEN_logo.gif" id="lorraine" class="partners" alt="">
+										<p id='coversupervisors'>
+
+						<u>Authors</u> :</br>
+						<span style="font-weight:bold;"> Mathieu FONTAINE</span>, Aditya Arie NUGRAHA,
+						 Roland BADEAU, Kazuyoshi YOSHII, Antoine LIUTKUS
+
+					</p>
+
+					<aside class="notes">
+						<ul><li>Opportunity to introduce my work for a postodoctoral researcher position in AIP project.</li>
+						<li>Mathieu Fontaine, last year PhD Student (defense in june 2019).Supervised by Roland Badeau & Antoine Liutkus. </li>
+						<li>PhD funded by ANR Kamoulox (Denoising, Source separation and audio source localization task)</li>
+						<li>For me, it is in the context of heavy tailed distributions as alpha-stable process</li>
+					</ul>
+					</aside>
+				</section>
+
+	<section class="cover" data-background="figures/background.jpg" data-state="no-title-footer no-progressbar has-dark-background">
+		<h2 id='coverh2'>I: Introduction</h2>
+		<aside class="notes">
+			<ul><li>Explain a bit the speech enhancement and the goal of it</li>
+		</ul>
+		</aside>
+	</section>
+	<section>
+		<h1>Speech Enhancement ?</h1>
+		<aside class="notes">
+			<ul><li>the linear combination of the copies are distributed as a linear combination of the stable vector X</li></ul>
+		</aside>
+		<img src="figures/noise.png" width="45%" style="margin-left:10em; margin-top:-1em;"></br>
+		<span style="font-weight:bold; margin-left:5em;">Partially or totally remove the noise from a speech signal</span>
+ <p>In the <span style="font-weight:bold;">short-time Fourier transform</span> (STFT) domain, it implies remove$\bold{x}_{ft}^{n}\in \mathbb{C}^K$:
+<img src="figures/denoising_goal.png", width="73%", style="margin-left:-1.8em; margin-top:0.4em;">
+ <span style="margin-top:3em; float:right;">$K\text{: number of channels}$</span>
+ <span style="margin-top:-3.7em; float:right;">$F\text{: number of frequency bins}$</span>
+ <span style="margin-top:-2.4em; float:right;">$T\text{: number of time frame}$</span>
+ </p>
+	</section>
+		<section>
+			<aside class="notes">
+				<ul><li>Discuss about this paradigm</li>
+				<li>Heavy tailed in the sense that can accept more easily outliers in its model</li>
+				</ul>
+			</aside>
+		<h1>Paradigm for Probabilistic Denoising Algorithms</h1>
+<img src="figures/paradigm_denoising.png" alt="" style="float-align:center; margin-top:0.5em; margin-left:3.5em;" width="85%">
+	<div class="references" style="float:left;">
+		<ul><li>Vincent, E. & Al. (2011). Probabilistic modeling paradigms for audio source separation.</li></ul>
+	</div>
+</section>
+
+<section>
+	<aside class="notes">
+		<ul><li>Audio source separation: how reconstruct each sources given the obserations containing each of them ?</li>
+			<li>Usually, linear combination and Gaussian Wide sense-stationnary process for a classical Wiener filtering application</li>
+		<li>Generalization for heavy tailed distributions ? Harmonizable Alpha-stable process.</li></ul>
+	</aside>
+	<h1 style="margin-bottom:-0.0em;">Example: Gaussian & Wiener Filter</h1>
+	Assuming the following model for speech$\bold{x}^s$ and noise$\bold{x}^n$
+			<img src="figures/montage_gaussian.png", width="58%", style="margin-left:7em;"></br>
+
+		and knowledge of observation$\bold{x}$, we can estimate$\bold{x}^{s}$ as:
+	<span style="text-align:center;">$$
+	\mathbb{E}\left[\bold{x}_{ft}^s \mid \bold{x}_{ft},\left\{\color{blue}{a_{ft}^j}, \color{red}{\bold{R}_f^{j}}\right\}_{j \in \{s,n\}}\right] =
+	\color{blue}{a_{ft}^s}\color{red}{\bold{R}_{f}^{s}}\left(\sum_{j \in \{s,n\}}\color{blue}{a_{ft}^j}\color{red}{\bold{R}_{f}^{j}}\right)^{-1}\bold{x}_{ft}$$</span>
+  <ul>
+		<li> Parameters estimation$\rightarrow$ log-likelihood, variational autoencoder (VAE) etc.
+	</ul>
+		<div class="question" style="margin-top: 0.4em;">What about heavy-tailed distributions ?</div>
+	<div class="references" style="float:left;">
+		<ul><li style="font-size:14px;">Duong N Q.K & Al. (2009). Under-determined reverberant audio source separation using a full-rank spatial covariance model.</li></ul>
+	</div>
+</section>
+
+<section class="cover" data-background="figures/background.jpg" data-state="no-title-footer no-progressbar has-dark-background">
+	<h2 id='coverh2'>II: Cauchy Model & Projection-Based Wiener Filter</h2>
+	<aside class="notes">
+	</aside>
+</section>
+
+<section>
+	<aside class="notes">
+		<ul><li>Spatial density: contain spatial correlation information in each directions</li></ul>
+	</aside>
+	<h1 style="margin-bottom:0.3em;">Cauchy Distribution</h1>
+	$\mathbf{y} \sim \mathcal{C}_{\mathbb{C}}^{K}\!\left(\mathbf{y} | \bold{\mu}, \mathbf{V} \right)$ follows a <span style="font-weight:bold;">circularly-symmetric multivariate complex Cauchy distribution</span>  of dimension K iff. its probability density$p_{ \bold{\mu},\mathbf{V}}$ is
+			<center> $$
+					 p_{ \bold{\mu},\mathbf{V}}\!\left(\mathbf{y}\right)
+					 =A_{K,\mathbf{V}}\left(1+\left(\mathbf{y} - \bold{\mu}\right)^{H}\mathbf{V}^{-1}\left(\mathbf{y} - \bold{\mu}\right)\right)^{-K-\frac{1}{2}},
+			 $$</center>
+			 where
+			 <center>$$
+					 A_{K,\mathbf{V}}
+					 =\prod_{k=1}^{K}\left(K-k+\frac{1}{2}\right)\pi^{-K}\det\left(\mathbf{V}\right)^{-1}
+			 $$</center>
+			 In$\mathbb{R}$ with$K=1$:</br>
+			 <div class="multiCol">
+				<div class="col">
+			 <img src="figures/pdf_cau_gau.png">
+		 </div>
+		 <div class="col">
+			 <video data-autoplay src="figures/video/gaussian.mp4">
+			 </video>
+			 <video data-autoplay src="figures/video/cauchy.mp4">
+			 </video>
+		 </div>
+	 </div>
+
+		<div class="references" style="float:left; margin-top:-1.1em;">
+			<ul><li>Samoradnitsky, G. (1995). Stable non-Gaussian random processes.</li></ul>
+		</div>
+</section>
+
+
+<section>
+	<aside class="notes">
+		<ul><li>Inspired by the gaussian model</li></ul>
+	</aside>
+<h1>Source Model & Spatial Model</h1>
+<h2>Spatial representation theorem</h2>
+<span style="text-align:center;">$$
+\bold{x}\sim S\alpha S_{c}^{K}\left(\Gamma_{\bold{x}}\right) \Leftrightarrow \bold{x}=^d\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\bold{\theta}\mathcal{X}\left(d\bold{\theta}\right)
+$$</span>
+<img src="figures/vector_decomposition.png" alt="" style="float-align:center; margin-top:0.5em; margin-left:3.5em;" width="100%">
+
+</section>
+
+	<section>
+	<h1>Example: mixture of$\alpha-$ stable vectors</h1>
+	<div class="multiCol">
+		<div class="col">
+			<center><img src="figures/VM_sources.png" alt="" style="float:center; background-color; margin-top:-0.4em;" width="90%"></center>
+		</div>
+		<div class="col">
+			<center><img src="figures/VM_mix.png" alt="" style="float:center; background-color; margin-top:-0.4em;" width="92%"></center>
+		</div>
+	</div>
+	We assume that:</br>
+	<ul><li>$\bold{x}=\sum_{j=1}^{J}\bold{y}_{j};~~\forall j,\,\bold{y}_{j}\sim S\alpha S_{c}^{K}\left(\Gamma_{j}\right) \Rightarrow \bold{x}\sim S\alpha S_{c}^{K}\left(\Gamma_{\bold{x}}\triangleq\sum_j\Gamma_j\right)$</li>
+	<li>The representation theorem gives : $\forall j,\:\bold{y}_{j}=^d\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\bold{\theta}\mathcal{Y}_{j}\left(d\bold{\theta}\right) \Rightarrow \mathcal{X}\triangleq\sum_{j}\mathcal{Y}_{j}$
+	 defines a spatial spectrum associated to$\bold{x}$</li>
+	</ul>
+	</section>
+
+	<section>
+		<h1>Spatial spectrum filter</h1>
+		<h2>Estimator criterion</h2>
+		<ul><li>$\hat{\mathcal{X}}\left(d\bold{\theta}\right)$ such that for any function$\psi$ satisfying
+			 $\int_{\bold{\theta}\in S_{\mathbb{C}}^{K}}\left|\psi\left(\bold{\theta}\right)\right|^{\alpha}\Gamma_{\bold{x}}\left(d\bold{\theta}\right)<+\infty$:</li>
+		</ul>
+		<span style="text-align:center;">$$\mathbb{E}\left[\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\psi\left(\bold{\theta}\right)
+			\mathcal{X}\left(d\bold{\theta}\right)\,\bigg|\,\bold{x}\right]=
+			\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\psi\left(\bold{\theta}\right)\hat{\mathcal{X}}\left(d\bold{\theta}\right)$$</span>
+		<h2>Estimation of$\mathcal{X}$</h2>
+			<ul><li>$\hat{\mathcal{X}}\left(d\bold{\theta}\right)$ can be rewritten as $g_{_{_\mathcal{X}}}\left(\bold{x},\bold{\theta}\right)\Gamma_{x}\left(d\bold{\theta}\right)$ where$g_{_{_\mathcal{X}}}$ is a fraction of two integrals along the hypersphere$\mathcal{S}_{\mathbb{C}}^{K}$ which depends
+				of $\theta$, the Levy-exponent $I_x \triangleq-\log \varphi_x$ and two series which can be pre-computed.</li>
+			</ul>
+		<h2>Separation</h2>
+		<ul><li> We proved that:</li></ul>
+		<span style="text-align:center;">$$\hat{\bold{y}}_{j}\triangleq\mathbb{E}\left[\bold{y}_{j}\big|\bold{x}\right]=
+			\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\bold{\theta}g_{_{_\mathcal{X}}}\left(\bold{x},\bold{\theta}\right)\Gamma_{j}(d\bold{\theta})$$</span>
+	</section>
+
+	<section>
+		<aside class="notes">
+		<ul><li>Try to generalize Wiener filter which minimize the covariance norm between a source and the linear estimation of the source</li></ul>
+		</aside>
+		<h1> Covariation-minimizing filter (1/2)</h1>
+		<h2> Covariation & covariation norm</h2>
+		<ul><li> No $2^{nd}-$ order statistics for $\alpha < 2$</li>
+		<li> For $\alpha >1$ and $\bold{x}\triangleq\left(x_1,x_2\right)\sim S\alpha S_c^2\left(\Gamma_{\bold{x}}\right)$ the <b>covariation</b> is:
+		</ul>
+		<span style="text-align:center;">$$\left[x_{1},x_{2}\right]_{\alpha}\triangleq\int_{z=
+			\left(z_{1},z_{2}\right)\in\mathcal{S}_{\mathbb{C}}^{2}}z_{1}z_{2}^{\left\langle \alpha-1\right\rangle }\Gamma_{x}\left(dz\right)$$</span>
+		<ul>
+			<li> The <b>covariation norm</b> is:</li>
+		</ul>
+		<span style="text-align:center;">$$\left\Vert x\right\Vert {}_{\alpha}=\left(\left[x,x\right]_{\alpha}\right)^{1/\alpha}$$</span>
+		<h2>Covariation filtering technique</h2>
+		<ul>
+		<li> Linear estimator$\hat{y}_{jk}=\left\langle \bold{w}_{jk},\bold{x}\right\rangle$ + enforcement of perfect separation$\sum_{j}\bold{w}_{jk}=\bold{e}_{k}$</li>
+		<li> For each entries $k$, we have the following optimization problem:</li>
+	</ul>
+	<span style="text-align:center">$$\begin{array}{cc}
+				{\text{minimize}}_{\bold{w}_{jk}} & \sum_{j}\left\Vert y_{jk}-\left\langle \bold{w}_{jk},\bold{x}\right\rangle \right\Vert _{\alpha}^{\alpha}\\
+				\text{subject to} & \sum_{j}\bold{w}_{jk}=\bold{e}_{k}.
+				\end{array}$$</span>
+	</section>
+
+	<section>
+		<h1> Covariation-minimizing filter (2/2)</h1>
+		<h2>Optimization problem</h2>
+		<ul><li>Karush-Kuhn-Tucker conditions are verified $\Rightarrow$ Existence of a unique solution</li>
+		<li style="margin-bottom:0.9em;"> Equivalent to solve the following fixed-point problem:</li>
+		</ul>
+		<span style="text-align:center;">$$\bold{P}_{jk}\leftarrow\int\left(\frac{\bold{\theta}\bold{\theta}^{\star}}{\left|\theta_{k}-\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}-\frac{\bold{\theta}\bold{\theta}^{\star}}{\left|\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}\right)\Gamma_{j}\left(d\bold{\theta}\right)+\int\frac{\bold{\theta}\bold{\theta}^{\star}}{\left|\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}\Gamma_{x}\left(d\bold{\theta}\right).$$</br>
+		$$\bold{\lambda}_{k}\leftarrow\left(\sum_{j}\bold{P}_{jk}^{-1}\right)^{-1}\left(
+		\sum_{j}\bold{P}_{jk}^{-1}\int\frac{\bold{\theta}\theta_{k}^{\star}}
+		{\left|\theta_{k}-\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}
+		\Gamma_{j}\left(d\bold{\theta}\right)-\bold{e}_{k}\right)$$</br>
+		$$\bold{w}_{jk}\leftarrow\bold{P}_{jk}^{-1}\left(\int\frac{\bold{\theta}\theta_{k}^{\star}}
+		{\left|\theta_{k}-\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}
+		\Gamma_{j}\left(d\bold{\theta}\right)-\bold{\lambda}_{k}\right)$$
+		</span>
+		<h2> Reconstruction </h2>
+		<ul><li>Use the estimated mask$\bold{w}_{jk}$:</li></ul><span style="text-align:center;">$$\forall j,k,\hat{y}_{jk}=\left\langle \bold{w}_{jk},\bold{x}\right\rangle $$</span>
+	</section>
+
+	<section>
+		<aside class="notes">
+		<ul><li>Constrained : spherical harmonics, parameterized by Von-Mises Fischer Distributions</li>
+		<li>Related to my personnal research project: I would like to work on audio source localization using this spatial representation.</li>
+		<li>I already have done some works on the subject but not using this spatial representation</li>
+		<li>Also, other works close to audio souce localization (room geometry identification, interactions between sources) will be welcome</li>
+		<li>The meaning here is very close to direction of arrivals, which can accept impulse noise due to alpha-stable model</li>
+		</ul>
+
+		</aside>
+	<h1> Conclusion & future works</h1>
+	<h2>Conclusion</h2>
+	<ul><li>Vectors that accept unusual events admits a unique spatial decomposition</li>
+	<li>Controled by:</br>
+	$~~~~~~~~~~\to$ spatial measure$\Gamma$ (correlation + energy)</br>
+	$~~~~~~~~~~\to$ spatial spectrum$\chi$ (dispatching energy)</br></li>
+	</ul>
+	<h2>Future works</h2>
+	<ul><li>Constrained the spatial measure for particular task</li>
+	<li>Use this model for other kind of non-scalar data</li>
+	<li>Use this model for other applications:</li>
+	$~~~~~~~~~~\to$ Audio processing $\Rightarrow$ Dereverberation, acoustic source localization</br>
+	$~~~~~~~~~~\to$ Predictions $\Rightarrow$ Control unusual spatial events
+</ul>
+	</section>
+
+
+
+<!--
+				<section>
+					<h1>Parameter Estimation</h1>
+					<h2 style="margin-top:-0.5em;"> Fractional Lower-order moments (FLOM)</h2>
+					<ul>
+						<li>
+						If $X\sim S\alpha S_c(\sigma)$ then:
+						</li>
+					</ul>
+					<span style="text-align:center;">$$
+						\forall p \in (0,\alpha),~~ \mathbb{E}\left[\left|X\right|^p\right] = C\left(p,\alpha\right) \sigma ^{p/\alpha};~~ C\left(p,\alpha\right)
+						 = \frac{2^{p+1}\Gamma\left(\frac{p+1}{2}\right)\Gamma\left(-p/\alpha\right)}{\alpha\sqrt{\pi}\Gamma\left(-p/2\right)}
+
+					$$</span>
+					<ul>
+						<li>
+						We can calculate moments of different orders to estimate$\sigma_j\left(f,t\right)$
+						</li>
+					</ul>
+				  <h2> Conditionnal gaussianity</h2>
+					<ul>
+						<li>
+						$X\sim S\alpha S_c(\sigma) \Leftrightarrow X | \phi \sim \mathcal{N}_c(0, \phi\sigma)$; $\phi \sim \mathcal{P}\frac{\alpha}{2}S (2\cos(\frac{\pi\alpha}{4})^{2/\alpha})$
+						</li>
+						<li>
+							Apply a classical Wiener filter and estimate$\phi$ using an Markov Chain Monte-Carlo algorithm as the Metropolis-Hastings approach.
+						</li>
+					</ul>
+					<h2> Characteristic function of an$S\alpha S_c$ distribution</h2>
+					<ul>
+						<li>
+						$X\sim S\alpha S_c(\sigma) \Leftrightarrow \mathbb{E}\left[\exp(i\Re\left[\theta^{\star}X\right])\right] = \exp(-\sigma\left|\theta\right|^\alpha)$
+						</li>
+						<li>
+							Given several $S\alpha S_c(\sigma)$ samples $X_1,\cdots,X_N$, compute the empirical characteristic function
+					    $\frac{1}{N}\sum_{n=1}^{N}\exp\left(i\Re\left[\theta_p^{\star}X_n\right]\right)$ for several "characteristic frequencies" $\theta_1, \cdots, \theta_P$.
+						</li>
+					</ul>
+					<div class="references" style="float:left; margin-top:0.2em;">
+						<ul><li>Nikias, C. L., & Shao, M. (1995). Signal processing with alpha-stable distributions and applications.</li>
+						<li>Şimşekli, U., Liutkus, A., & Cemgil, A. T. (2015). Alpha-stable matrix factorization</li>
+						</ul>
+					</div>
+				</section>
+				<section>
+								<h1>Outline</h1>
+								<h2> II- Audio Source Localization</h2>
+								<h3>II-A Previous work: $1^{st}~\alpha-$ stable spatial representation</h3>
+								<h3>II-B New Research Topic: Constrained model and new application</h3>
+								<h2>III - Multivariate $\alpha-$stable Filtering Theory</h2>
+								<h3>III-A Previous work: $2^{nd}~\alpha-$ stable spatial representation</h3>
+								<h3>III-B Future work: A new spatial vision for audio task</h3>
+
+								<h2> IV - Conclusion</h2>
+								<div class="references" style="float:left; margin-top:0.5em;">
+									<ul><li>M Fontaine, C Vanwynsberghe, A Liutkus, and R Badeau.(2017) Scalable source localization with multichannel alpha-stable distributions, EUSIPCO.</li>
+									<li>M Fontaine, C Vanwynsberghe, A Liutkus, and R Badeau.(20107) Sketching for nearfield acoustic imaging of heavy-tailed sources, LVA-ICA.</li>
+									<li>Fontaine, M., Stöter, F. R., Liutkus, A., Şimşekli, U., Serizel, R., & Badeau, R. (2018, July). Multichannel Audio Modeling with Elliptically Stable Tensor Decomposition.</li>
+									<li>M Fontaine, A Liutkus, and R Badeau.(2018) Multivariate Alpha-stable Filtering, IEEE-TSP (Submitted).</li>
+									</ul>
+								</div>
+							</section>
+				<section class="cover" data-background="figures/background.jpg" data-state="no-title-footer no-progressbar has-dark-background">
+								<h2 id='coverh2'>II-A: Previous work: $1^{st}~\alpha-$ stable spatial representation</h2>
+							</section>
+							<section>
+								<h1>Problem Statement</h1>
+									<img src="figures/acoustic_loc.png" alt="" style="float:center; background-color;" width="80%">
+									<ul><li>Given several microphones$x_{1},\cdots,x_{K}$ randomly positioned</li>
+											<li>Localize audio sources$s_{1},\cdots,s_{L}$ by estimating their magnitudes</li>
+									</ul>
+							</section>
+
+							<section>
+								<h1>Acoustic & Probabilistic Modeling</h1>
+								<h2>Mixing model</h2>
+								STFT observations at TF bins$\left(f,t\right)$ denoted by$\bold{x}\left(f,t\right)\in\mathbb{C}^{K}$ are approximated by:
+								<span style="text-align:center;"></br></br>
+								$$\forall\left(f,t\right),\:\bold{x}\left(f,t\right)\simeq\sum_{l=1}^{L}\bold{A}_{l}\left(f\right)s_{l}\left(f,t\right)$$
+							  </span></br>
+								<ul><li>$\bold{A}_{l}\left(f\right)\in\mathbb{C}^{K}$: frequency response at the$l^{th}$ position in the room at frequency band$f$ or steering vector
+								(depend on the acoustic model)</li></ul>
+								<h2>Probabilistic model</h2>
+			          Each position in the room is modeled as follows
+								<ul></br>
+									<span style="text-align:center;">$$s_{l}\left(f,t\right)\sim S\alpha S_{c}\left(\Upsilon_{l}\right)$$</span></br>
+									<li>$\bold{\Upsilon}=\left[\Upsilon_{1},\cdots,\Upsilon_{L}\right]^{\top}$:<b> discrete spatial measure</b>$\Rightarrow$ amplitude of each potential source in the room</li>
+							</ul>
+						</section>
+						<section>
+							<h1 style="margin-top:-0.5em;">Levy Exponent</h1>
+								The $\alpha-$ stable theory provides an analytical form:</br>
+								<span style="text-align:center;"></br>
+								$$\forall\bold{\theta},\in\mathbb{C}^{K},\,I_{f}\left({\theta}\right)=\sum_{l=1}^{L}
+								\left|\left\langle \bold{\theta},\bold{a}_{l}\left(f\right)\right\rangle \right|^{\alpha}\Upsilon_{l}$$</span></br>
+								<ul><li>$\bold{a}_{l}\left(f\right) \triangleq \bold{A}_{l}\left(f\right)/\left\Vert\bold{A}_{l}\left(f\right)\right\Vert_2\in\mathbb{C}^{K}$</li>
+								<li>$\forall\bold{\theta}\in\mathbb{C}^{K},\:I_{f}\left(\bold{\theta}\right)
+								\triangleq-\log\left(\mathbb{E}\left[\exp\left(i\Re\left\langle \bold{\theta},
+								\bold{x}\left(f,t\right)\right\rangle \right)\right]\right)$ : <span style="font-weight: bold;">Levy exponent</span>
+								 of the mixture</li></ul></br></br>
+									Choosing$\left[\bold{\Psi}_{f}\right]_{l'l}=\left|\left\langle \bold{a}_{l'}\left(f\right),
+										  \bold{a}_{l}\left(f\right)\right\rangle \right|^{\alpha}$  yields:
+
+								<center><img src="figures/psi_I.png" alt="" style="float:center; background-color;margin-top:0.2em;" width="60%"></center>
+						<div class="references" style="float:left; margin-top:0.2em;">
+							<ul><li>M Fontaine, C Vanwynsberghe, A Liutkus, and R Badeau.(2017) Sketching for nearfield acoustic imaging of heavy-tailed sources.</li>
+						</ul>
+					</div>
+							</section>
+
+							<section>
+								<h1 style="margin-top:-0.8em;">Parameters Estimation</h1>
+
+						<center><img src="figures/outline_loc.png" alt="" style="float:center; background-color;margin-top:-1.2em; margin-bottom:0.4em;" width="60%"></center>
+			Data fit cost function: $\hat{\bold{\Upsilon}}\leftarrow\arg\min_{\bold{\Upsilon}\geq0}
+									d_{\beta}\left(\hat{\bold{I}}|\bold{\Psi}\bold{\Upsilon}\right)+\lambda\|\bold{\Upsilon}\|_{1}$</br></br>
+									<span style="text-align:center;">$$\hat{\bold{\Upsilon}}\leftarrow\hat{\bold{\Upsilon}}
+										\cdot\frac{\bold{\Psi}^{\top}\left(\left(\bold{\Psi}\hat{\bold{\Upsilon}}\right)^{\beta-2}
+										\cdot\hat{\bold{I}}\right)}{\bold{\Psi}^{\top}\left(\left(\bold{\Psi}\hat{\bold{\Upsilon}}\right)^{\beta-1}\right)+\lambda}$$</span>
+										</br>	<ul><li>$d_{\beta}, \lambda\|\bold{\Upsilon}\|_{1}$: $\beta-$ divergence and$\ell_{1}-$regularization penalty</li>
+																		<li><b>Sketching approach</b>: data only used once for estimating the Levy exponent </li>
+											</ul>
+								<div class="references" style="float:left; margin-top:0.2em;">
+									<ul><li>N Keriven and al. (2016, March). Sketching for large-scale learning of mixture models.</li>
+								</ul>
+							</div>
+							</section>
+
+							<section>
+								<h1>Evaluation</h1>
+								<ul><li>$J=5$ speech signals distributed randomly on a $5~\text{x}~4$ m plane within a  $5~\text{x}~4~\text{x}~3$ meters simulated room with a $0.4$s reverberation time</li>
+										<li>Featuring up to K=50 microphones at random positions</li>
+										<li>Comparison between DSM, Steering response power (SRP), RELAX and CLEAN algorithms</li>
+										<li>$\beta=0$, $\alpha=1$ (Cauchy case) and $\lambda=1$</li>
+										<li>2500 trial simulations are carried out</li>
+										<li>Evaluated by correlations between the estimated and ground truth maps</li>
+								</ul>
+								<div class="multiCol">
+									<div class="col">
+										<img src="figures/correlation_trueA.png" alt="" style="float:center; background-color;" width="90%">
+										<ul><li>$\bold{A}_l\left(f\right):$ Fourier transform of the room impulse responses</li></ul>
+									</div>
+								<div class="col">
+									<img src="figures/correlation_Aacoustic.png" alt="" style="float:center; background-color; margin-top:0.4em;" width="100%">
+									<ul><li>$\left[\bold{A}_{l}\left(f\right)\right]_{k}=\frac{1}{r_{kl}}\exp\left(-i\frac{\omega_{f}r_{kl}}{c_{0}}\right)$: Nearfield region assumption</li></ul>
+								</div>
+							</div>
+							</section>
+
+				<section>
+					<h1>Conclusion</h1>
+					<ul><li>A new method for acoustic imaging</li>
+					<li>Requires going through the observed multichannel signals only once in order to estimate$\bold{\Upsilon}$</li>
+					<li>Wide range of possible robust models$\left(0<\alpha<2\right)$</li>
+					<li>Future work may include time-varying DSM and an experimental validation of robustness to noise</li>
+				  </ul>
+					<center><img src="figures/heatmap.png" alt="" style="float:center; background-color; margin-top:0.4em;" width="40%"></center>
+					<div class="references" style="float:left; margin-top:0.2em;">
+						<ul><li>M Fontaine, C Vanwynsberghe, A Liutkus, and R Badeau.(2017) Sketching for nearfield acoustic imaging of heavy-tailed sources.</li>
+							<li>M Fontaine and al. (2017) Scalable source localization with multichannel alpha-stable distributions.</li>
+					</ul>
+				</div>
+				</section>
+
+				<section class="cover" data-background="figures/background.jpg" data-state="no-title-footer no-progressbar has-dark-background">
+					<h2 id='coverh2'> II-B Future Work: New application and constrained model</h2>
+				</section>
+				<section>
+				<h1>Acoustic imaging for perception enhancement (1/2)</h1>
+				<h2>Introduction</h2>
+				<ul>
+				<li>The Discrete spatial Measure (DSM) $\Upsilon$ provide position + energy of sources.</li>
+				<li> Assuming now a time-frequency (TF) varying DSM.</li>
+				<li>DSM energy wrt. each frequency-position could provide behavior informations?</li>
+				<li> Global audio energy of angry people$\neq$ global audio energy of scared people.</li>
+			  </ul>
+				<center><img src="figures/emotion_decomposition.png" alt="" style="float:center; background-color; margin-top:0.4em;" width="45%"></center>
+				</section>
+				<section>
+				<h1>Acoustic imaging for perception enhancement (2/2)</h1>
+				<h2>Idea for learning</h2>
+				<ul><li>Create a dictionnary of TF varying DSM. For instance, according to:
+				</li>
+				$~~~~~~~\to$ The behavior (fear, anger, happy etc.).</br>
+				$~~~~~~~\to$ The gender (male or female).</br>
+				$~~~~~~~\to$ Number of people.</br>
+				$~~~~~~~\to$ Acoustic parameters (size of the room, reverberation time).</br></br>
+				<li>We can learn this dictionnary thanks to:</li>
+					$~~~~~~~\to$ Deep Neural Networks.</br>
+					$~~~~~~~\to$ Learn nonnegative tensor decomposition of the TF varying DSM.</br>
+					$~~~~~~~\to$ Learn perceptual scores.</br>
+				</ul>
+				<h2>Pros and Cons</h2>
+				<ul><li><span style="color:green;">Sketching method: used once the datas to update</span></li>
+				<li><span style="color:green;">Do not need a priori number of sources</span></li>
+			<li><span style="color:green;">the smaller the $\alpha$ is, the more non-impulsive signals are ignored</span></li>
+		<li><span style="color:red;">The computation of the DSM depend on the acoustic model (room dimension etc.)</span></ul>
+			</section>
+				<section>
+				<h1 style="margin-top:-0.8em;">Constrained model: Spherical harmonics</h1>
+				<h2>Context</h2>
+				<ul><li> Let$K$ be the number of microphones.</li>
+				<li>In theory, the DSM is a measure defined on the hypersphere of dimension$K$.</li>
+				<li>In past research, the DSM is not constrained $\Rightarrow$ too much degree of liberty</li>
+				</ul>
+				<h2>Spherical Harmonics Decomposition (SHD)</h2>
+				<ul><li>SHDs are known to improve results in audio source localization</li>
+				<li>Assuming that the time-frequency Spatial Measure is not necesseraly Discrete</li>
+				<li>Suppose that: $\Upsilon\left(f,t\right)=f(\Theta)d\Theta$ where:</li>
+					$~~~~~~~\to$ $f$ is a polynomial decomposed on the orthogonal spherical harmonic basis.</br>
+					$~~~~~~~\to$ $d\theta$ is the Lebesgue measure</br>
+				</ul>
+				<h2>Pros and Cons</h2>
+				<ul><li><span style="color:green;">$f$ can be learned beforehand $\Rightarrow$ less computationally demanding as non-constrained method.</span></li>
+				<li><span style="color:green;">Many degree for $f$ could be possible according to the kind of behaviors</li>
+				<li><span style="color:red;">Real Spatial measure is a sum of dirac $\Rightarrow$ hard to estimate with SHD</li></ul>
+				</section>
+				<section>
+				<h1 style="margin-top:-0.4em;">Constrained models with other distributions (1/2)</h1>
+				<h2>Elliptically contoured multivariate stable (ECMS) distribution</h2>
+				<p>An ECMS complex random vector (r.v.)$\bold{u}\sim\mathcal{E}\alpha S^{K}\left(\bold{A}\right)$ of dimension$K$ is fully described by:</p>
+				<ul><li style="margin-top:-0.7em;">$\alpha\in(0,2]$: characteristic exponent</li>
+				<li>$\bold{A}\in\mathbb{C}^{K\times K}$: positive definite Hermitian <b>scatter matrix</b></li></ul>
+				<ul><li>Estimation of $\bold{A}$ $\Leftrightarrow$ spatial information thanks to covariance matrix</li></ul>
+				<center><img src="figures/elliptic.png" alt="" style="float:center; background-color;margin-top:0.4em;" width="43%"></br>
+				<div style="margin-top:-0.9em;">2-ECMS distribution with$\alpha=1.1$</div></center>
+				</section>
+				<section>
+				<h1>Constrained models with other distributions (2/2)</h1>
+				<h2>Cauchy Multivariate Distribution</h2>
+				<ul><li>for $\alpha=1$, it exists a closed-form of probability density function (pdf.)</li>
+				<li>A Multivariate Cauchy pdf. is given by:</b></li></ul>
+					<center>$$p(s) = \dfrac{\prod\limits_{k=1}^n (n-k+\frac{1}{2})}{\pi^n \det(V) (1+(s-\mu)^H V^{-1} (s-\mu))^{n+\frac{1}{2}}}$$</center>
+				<h2>Likelihood Estimation (LE) for Spatial Measure (SM) Estimation</h2>
+				<ul><li>Remember that the spatial measure is linked to the characteristic function (chf.)</li>
+				<li>The characteristic function is also the inversed Fourier transform of the pdf. $p$</li>
+			 <li>Find a link between the pdf. and the SM $\Rightarrow$ possible LE estimation</li></ul>
+			 <h2>Pros and Cons</h2>
+			 <ul><li><span style="color:green";>A classical method for impulsive model</li>
+			 <li><span style="color:red;">Can be ignored less impulsive sources</li></ul>
+				</section>
+
+				<section class="cover" data-background="figures/background.jpg" data-state="no-title-footer no-progressbar has-dark-background">
+					<h2 id='coverh2'>III-A Previous work: $2^{nd}~\alpha-$ stable spatial representation</h2>
+				</section>
+				<section>
+					<aside class="notes">
+
+					 The
+					 representation theorem means that an SαS c K random vector is
+					 distributed as the sum of infinitely many contributions, coming
+					 from all directions θ ∈ S K on the sphere. Γ x (dθ) may thus be
+					 interpreted as the scale factor of the contributions pointing in
+					 the direction θ
+					</aside>
+					<h1>Spatial Representation (1/2)</h1>
+					<h2>Spatial density</h2>
+					<ul><li>$\bold{x},\varphi_x$: complex random vector in $\mathbb{C}^{K}$ and its characteristic function (chf.)</li>
+						<li>An isotropic vector is fully described by its chf. :</li></ul>
+						<span style="text-align:center;">$$\forall\bold{\theta}'\in\mathbb{C}^{K},\:\varphi_{\bold{x}}\left(\bold{\theta}'\right)=
+							\exp\left(-\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\left|\left\langle \bold{\theta}',
+							\bold{\theta}\right\rangle \right|^{\alpha}\Gamma_{\bold{x}}\left(d\bold{\theta}\right)\right)$$</span>
+						<ul><li>$\Gamma_{\bold{x}}$: symmetric real measure on the hypersphere$S_{\mathbb{C}}^{K}$ called the <b>spatial density</b></li>
+							<li>We thus write$\bold{x}\sim S\alpha S_{c}^{K}\left(\Gamma_{\bold{x}}\right)$ to be an isotropic distribution controlled by $\Gamma_{\bold{x}}$</li></ul>
+						<h2>Spatial spectrum</h2>
+						<ul><li>$\mathcal{X}$ is a <b>Spatial Spectrum</b> with control density $\Gamma_{\bold{x}}$ iff</br>
+						&nbsp&nbsp&nbsp$\rightarrow~~~\forall A\subset\mathcal{B}\left(S_{\mathbb{C}}^{K}\right),~~\mathcal{X}\left(A\right)\sim S\alpha S_{c}\left(\Gamma_{\bold{x}}\left(A\right)\right)$</br>
+						&nbsp&nbsp&nbsp$\rightarrow~~~ \forall A,B\subset\mathcal{B}\left(S_{\mathbb{C}}^{K}\right),~~A\cap B=\emptyset,
+						 \mathcal{X}\left(A\right)$ and$\mathcal{X}\left(B\right)$ are independents a.s.</br></li>
+						</ul>
+						<div class="references" style="float:left; margin-top:0.5em;">
+							<ul><li>Samoradnitsky, G. (1995). Stable non-Gaussian random processes.</li></ul>
+						</div>
+				</section>
+				<section>
+				<h1>Spatial Representation (2/2)</h1>
+				<h2>Spatial representation theorem</h2>
+				<span style="text-align:center;">$$
+				\bold{x}\sim S\alpha S_{c}^{K}\left(\Gamma_{\bold{x}}\right) \Leftrightarrow \bold{x}=^d\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\bold{\theta}\mathcal{X}\left(d\bold{\theta}\right)
+				$$</span>
+				</section>
+				<section>
+				<h1>Mixture of$\alpha-$ stable vectors</h1>
+				<div class="multiCol">
+					<div class="col">
+						<center><img src="figures/VM_sources.png" alt="" style="float:center; background-color; margin-top:-0.4em;" width="90%"></center>
+					</div>
+					<div class="col">
+						<center><img src="figures/VM_mix.png" alt="" style="float:center; background-color; margin-top:-0.4em;" width="92%"></center>
+					</div>
+				</div>
+				We assume that:</br>
+				<ul><li>$\bold{x}=\sum_{j=1}^{J}\bold{y}_{j};~~\forall j,\,\bold{y}_{j}\sim S\alpha S_{c}^{K}\left(\Gamma_{j}\right) \Rightarrow \bold{x}\sim S\alpha S_{c}^{K}\left(\Gamma_{\bold{x}}\triangleq\sum_j\Gamma_j\right)$</li>
+				<li>The representation theorem gives : $\forall j,\:\bold{y}_{j}=^d\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\bold{\theta}\mathcal{Y}_{j}\left(d\bold{\theta}\right) \Rightarrow \mathcal{X}\triangleq\sum_{j}\mathcal{Y}_{j}$
+				 defines a spatial spectrum associated to$\bold{x}$</li>
+				</ul>
+				</section>
+
+				<section>
+					<h1>Spatial spectrum filter</h1>
+					<h2>Estimator Criterion</h2>
+					<ul><li>$\hat{\mathcal{X}}\left(d\bold{\theta}\right)$ such that for any function$\psi$ satisfying
+						 $\int_{\bold{\theta}\in S_{\mathbb{C}}^{K}}\left|\psi\left(\bold{\theta}\right)\right|^{\alpha}\Gamma_{\bold{x}}\left(d\bold{\theta}\right)<+\infty$:</li>
+					</ul>
+					<span style="text-align:center;">$$\mathbb{E}\left[\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\psi\left(\bold{\theta}\right)
+						\mathcal{X}\left(d\bold{\theta}\right)\,\bigg|\,\bold{x}\right]=
+						\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\psi\left(\bold{\theta}\right)\hat{\mathcal{X}}\left(d\bold{\theta}\right)$$</span>
+					<h2>Estimation of$\mathcal{X}$</h2>
+						<ul><li>$\hat{\mathcal{X}}\left(d\bold{\theta}\right)$ can be rewritten as $g_{_{_\mathcal{X}}}\left(\bold{x},\bold{\theta}\right)\Gamma_{x}\left(d\bold{\theta}\right)$ where$g_{_{_\mathcal{X}}}$ is a fraction of two integrals along the hypersphere$\mathcal{S}_{\mathbb{C}}^{K}$ which depends
+							of $\theta$, the Levy-exponent $I_x \triangleq-\log \varphi_x$ and two series which can be pre-computed.</li>
+						</ul>
+					<h2>Separation</h2>
+					<ul><li> We proved that:</li></ul>
+					<span style="text-align:center;">$$\hat{\bold{y}}_{j}\triangleq\mathbb{E}\left[\bold{y}_{j}\big|\bold{x}\right]=
+						\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\bold{\theta}g_{_{_\mathcal{X}}}\left(\bold{x},\bold{\theta}\right)\Gamma_{j}(d\bold{\theta})$$</span>
+				</section>
+
+				<section>
+					<h1> Covariation-minimizing filter (1/2)</h1>
+					<h2> Covariation & Covariation norm</h2>
+					<ul><li> No $2^{nd}-$ order statistics for $\alpha < 2$</li>
+					<li style="margin-bottom:0.3em;"> For $\alpha >1$ and $\bold{x}\triangleq\left(x_1,x_2\right)\sim S\alpha S_c^2\left(\Gamma_{\bold{x}}\right)$ the <b>covariation</b> is:
+					</ul>
+					<span style="text-align:center;">$$\left[x_{1},x_{2}\right]_{\alpha}\triangleq\int_{z=
+						\left(z_{1},z_{2}\right)\in\mathcal{S}_{\mathbb{C}}^{2}}z_{1}z_{2}^{\left\langle \alpha-1\right\rangle }\Gamma_{x}\left(dz\right)$$</span>
+					<ul><li style="margin-top:0.3em;">$\forall z\in\mathbb{C},\:z^{\left\langle \alpha\right\rangle }=
+						z^{\star}\left|z\right|^{\alpha-1}$: signed power function</li>
+						Let$\mathfrak{S}_{\alpha}$ be the linear space of jointly$S\alpha S_{c}$. For $x\in\mathfrak{S}_{\alpha}$ and $\alpha>1$
+						<li> The <b>covariation norm</b> is:</li>
+					</ul>
+					<span style="text-align:center;">$$\left\Vert x\right\Vert {}_{\alpha}=\left(\left[x,x\right]_{\alpha}\right)^{1/\alpha}$$</span>
+					<h2>Covariation filtering technique</h2>
+					<ul>
+					<li> Linear estimator$\hat{y}_{jk}=\left\langle \bold{w}_{jk},\bold{x}\right\rangle$ + enforcement of perfect separation$\sum_{j}\bold{w}_{jk}=\bold{e}_{k}$</li>
+					<li style="margin-top:0.3em;"> For each entries $k$, we have the following optimization problem:</li>
+				</ul>
+				<span style="text-align:center">$$\begin{array}{cc}
+							{\text{minimize}}_{\bold{w}_{jk}} & \sum_{j}\left\Vert y_{jk}-\left\langle \bold{w}_{jk},\bold{x}\right\rangle \right\Vert _{\alpha}^{\alpha}\\
+							\text{subject to} & \sum_{j}\bold{w}_{jk}=\bold{e}_{k}.
+							\end{array}$$</span>
+				</section>
+
+				<section>
+					<h1> Covariation-minimizing filter (2/2)</h1>
+					<h2>Optimization problem</h2>
+					<ul><li>Karush-Kuhn-Tucker conditions are verified $\Rightarrow$ Existence of a unique solution</li>
+					<li style="margin-bottom:0.9em;"> Equivalent to solve the following fixed-point problem:</li>
+					</ul>
+					<span style="text-align:center;">$$\bold{P}_{jk}\leftarrow\int\left(\frac{\bold{\theta}\bold{\theta}^{\star}}{\left|\theta_{k}-\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}-\frac{\bold{\theta}\bold{\theta}^{\star}}{\left|\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}\right)\Gamma_{j}\left(d\bold{\theta}\right)+\int\frac{\bold{\theta}\bold{\theta}^{\star}}{\left|\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}\Gamma_{x}\left(d\bold{\theta}\right).$$</br>
+					$$\bold{\lambda}_{k}\leftarrow\left(\sum_{j}\bold{P}_{jk}^{-1}\right)^{-1}\left(
+					\sum_{j}\bold{P}_{jk}^{-1}\int\frac{\bold{\theta}\theta_{k}^{\star}}
+					{\left|\theta_{k}-\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}
+					\Gamma_{j}\left(d\bold{\theta}\right)-\bold{e}_{k}\right)$$</br>
+					$$\bold{w}_{jk}\leftarrow\bold{P}_{jk}^{-1}\left(\int\frac{\bold{\theta}\theta_{k}^{\star}}
+					{\left|\theta_{k}-\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}
+					\Gamma_{j}\left(d\bold{\theta}\right)-\bold{\lambda}_{k}\right)$$
+					</span>
+					<h2> Reconstruction </h2>
+					<ul><li>Use the estimated mask$\bold{w}_{jk}$:</li></ul><span style="text-align:center;">$$\forall j,k,\hat{y}_{jk}=\left\langle \bold{w}_{jk},\bold{x}\right\rangle $$</span>
+				</section>
+ -->
+
+<!--
+				<section>
+					<h1 style="margin-top:-0.8em;">Motivations</h1>
+					<div class="multiCol">
+						<div class="col">
+					<center><img src="figures/problem_noise.png" alt="" style="float:center; background-color; margin-top:-1.7em;" width="75%"></center>
+				</div>
+				<div class="col">
+			<center><img src="figures/spectrogram.png" alt="" style="float:center; background-color; margin-top:-1.7em;" width="75%"></center>
+		</div>
+			</div>
+
+
+					<h2 style="margin-top:-0.9em;"> Parameterized Wiener Filter</h2>
+					<ul><li>Wiener filtering$\rightarrow$ minimum mean square error (MMSE) linear estimator of$s\left(f,t\right)$:</li></ul>
+					<center>$$\hat{s}(f,t)=\frac{\sigma_{s}^{2}(f,t)}{\sigma_{s}^{2}(f,t)+\sigma_{n}^{2}(f,t)}x(f,t)$$</center>
+					<ul><li style="margin-top:0.7em;"> Improvements $\rightarrow$ Parameterized Wiener filter (PWF):</li></ul>
+					<center>$$\hat{s}(f,t)=\frac{\sigma_{s}^{2}(f,t)}{\sigma_{s}^{2}(f,t)+k\ \sigma_{n}^{2}(f,t)}x(f,t)$$</center>
+					<h2 style="margin-top:-0.3em;">Objective</h2>
+					<ul><li>Understanding of PWF + provide a fast algorithm</li></ul>
+					<div class="references" style="margin-top:-0.01em;">
+						<ul><li>M Fontaine, A Liutkus, L Girin, and R Badeau.(2017) Explaining the parameterized Wiener filter with alpha-stable processes.</li>
+						<li>Y. Ephraim and D. Malah. (1984) Speech enhancement using a minimum-mean square error short-time spectral amplitude estimator.</li>
+						</ul>
+					</div>
+				</section>
+				 <section>
+					<h1>Conditional Gaussianity</h1>
+					<center><img src="figures/conditional_gaussian.png" alt="" style="float:center; background-color;margin-top:0.5em;" width="70%"></br></center>
+					<ul><li style="margin-top:1.2em;">$\mathcal{N}_{c}$: ”classical Gaussian”</li>
+						<li>$S\alpha S_c$: ”Gaussian with a randomly perturbed covariance”</li></ul>
+						<div class="references" style="margin-top:0.8em;">
+							<ul><li>Samoradnitsky, G. (1995). Stable non-Gaussian random processes.</li></ul>
+						</div>
+				</section>
+				<section>
+					<h1>Speech model & Parameterized Wiener filtering</h1>
+					<h2 style="margin-top:-0.7em;">Speech model</h2>
+					<center><img src="figures/source_noise.png" alt="" style="float:center; background-color; margin-top:-0.3em;" width="65%"></center>
+					<ul><li>$\underline{\alpha_{s}\neq\alpha_{n}}$: different characteristics for speech and noise</li></ul>
+					<h2>Multi-alpha filtering</h2>
+					<center><img src="figures/hybrid_filtering_model.png" alt="" style="float:center; background-color;" width="49%"></center>
+				</section>
+
+				<section>
+					<h1 style="margin-top:-0.4em;">Impulse Variable Estimation</h1>
+					<h2 style="margin-top:-0.9em;"> A fast estimation</h2>
+					<ul>
+					<li> $\{\phi\}_{f,t}$ do not depend on the signal and are identically distributed</li>
+					<li style="margin-bottom:0.3em;"> for $\alpha<1$, the median is close to the mode of an $\alpha-$ stable distribution $\Rightarrow$ replacing$\phi_{s}\left(f,t\right)$ and$\phi_{n}\left(f,t\right)$ by their median $\mathbb{M}\left(\phi_{s}\right)$ and$\mathbb{M}\left(\phi_{n}\right)$:</li>
+				</ul>
+				<span style="text-align:center; style="margin-top:-0.8em;"">$$\mathbb{E}\left[s\left(f,t\right)\,|\,x,\sigma\right]\approx\frac{\sigma_{s}^{2}
+					\left(f,t\right)\mathbb{M}\left(\phi_{s}\right)}
+					{\sigma_{s}^{2}\left(f,t\right)\mathbb{M}\left(\phi_{s}\right)+\sigma_{n}^{2}
+					\left(f,t\right)\mathbb{M}\left(\phi_{n}\right)}x\left(f,t\right)$$</span>
+					<h2>Performance of the proposed PWF</h2>
+					<center><img src="figures/results_PWF.png" alt="" style="float:center; background-color;" width="49%"></center>
+					<ul><li>$\alpha_{s}=1.2$ and$\alpha_{n}=1.89$</li>
+						<li>Average results over$10000$ trials $\rightarrow$ Average error$\simeq1.8\%$. With the mode$\simeq3.1\%$.</li>
+					</ul>
+				</section>
+
+				<section>
+					<h1>Scale Parameter estmation</h1>
+					<h2 style="margin-top:-0.6em;">Property of isotropic distributions</h2>
+					<span style="text-align:center;">$$s\left(f,t\right)\sim S\alpha_{s}S_{c}\left(\sigma_{s}^{\alpha}\left(f,t\right)\right)\Rightarrow\mathbb{E}
+						\left(\ln\left|s\left(f,t\right)\right|\right)
+						=\gamma\left(\frac{1}{\alpha_{s}}-1\right)+\alpha_{s}\log\left(\sigma_{s}\left(f,t\right)\right)$$</span>
+					<ul><li>$\gamma\approx0.577$ is the Euler constant</li></ul>
+					<h2>Smoothed scale parameters</h2>
+					<ul><li>$\sigma_{s}$ and$\sigma_{n}$ estimated through local averaging of$\log\left|\hat{s}\right|$ and$\log\left|\hat{n}\right|$</li>
+					<li>Different neighborhoods for speech and noise$\Rightarrow$ related to Kernel Additive Modeling (KAM)</li></ul>
+						<center><img src="figures/KAM.png" alt="" style="float:center; background-color;" width="60%"></center>
+						<div class="references" style="margin-top:-0.01em;">
+							<ul><li>Liutkus, A. and al. (2014). Kernel additive models for source separation.</li>
+							<li>Nikias, C. L., & Shao, M. (1995). Signal processing with alpha-stable distributions and applications.</li>
+							</ul>
+						</div>
+				</section>
+
+				<section>
+				<h1>Settings</h1>
+				<div class="multiCol" style="margin-top:-2.4em;">
+				<div class="col">
+					<h2>Multi-alpha Denoising (MAD)</h2>
+					<center><img src="figures/outline_MAD.png" alt="" style="float:center; background-color;" width="60%"></br>
+						</center>
+						<ul><li>Setup :$\alpha_{s}=1.3,\,\alpha_{n}=1.89,\Delta_{s}=0.09\,\text{s},$ $\Delta_{n}=0.16\,\text{s}$ and$4$ iterations. Initialization with$s=n=x/2$</li>
+										<li><b>No need for voice activity detection</b></li>
+						</ul>
+
+				</div>
+				<div class="col">
+				<h2>Corpus and baseline methods</h2>
+				<ul><li>$30$ fixed speech lasting $3$ seconds</li>
+				<li>Corrupted either by babble noise, car engine or airport environement (with  $0,5,10\,\text{and}\,15\,dB$ SNR values)</li>
+				<li>The magnitude spectral subtraction (MSS):$|\hat{s}|=\big(|x|^{\alpha}-\hat{\sigma}_{n}^{\alpha}\big)^{1/\alpha}$ with$\alpha=1$</li>
+				<li>The generalized spectral subtraction (GSS) : $|\hat{s}|=|x|^{\alpha}-k\hat{\sigma}_{n}^{\alpha}$ with$\alpha=1.2$ and$k=0.8$</li>
+				<li style="">The minimum mean square error speech short-time spectral amplitude (MMSE-STSA) : k=0.92</li></ul>
+				</div>
+				</div>
+				<h2>Evaluation metrics</h2>
+				<ul><li>perceptual evaluation of speech quality (PESQ): ranging between -0.5 and 4.5.</li></ul>
+				</section>
+
+				<section>
+				<h1>Results and demonstration</h1>
+				<div class="multiCol" style="margin-top:-1.4em;">
+					<div class="col">
+				<h2>Results</h2>
+				<center><img src="figures/PESQ-scores.png" alt="" style="float:center; background-color;" width="100%"></center>
+			</div>
+			<div class="col">
+				<h2>MAD for ethnical music data</h2>
+				<video style="margin-right:1em;" controls width='70%'>
+					<source data-src="figures/kam_demo.mov" type="video/mp4" />
+				</div>
+			</div>
+				</video>
+				<h2>Audio demonstration ($0~$dB SNR with car noise)</h2>
+
+				<div class="multiCol">
+					<div class="col">
+						<label for="Noisy">
+				&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspNoisy<br>
+		</label>
+				<audio id="Noisy" controls loop>
+				<source
+						type="audio/mpeg"
+						src="figures/audio/Noisy.wav"/>
+					</audio>
+				</div>
+				<div class="col">
+					<label for="MMSE">
+					&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspMMSE-STSA<br>
+					</label>
+						<audio id="MMSE" controls loop>
+						<source
+								type="audio/mpeg"
+								src="figures/audio/MMSE.wav"/>
+							</audio>
+						</div>
+					<div class="col">
+						<label for="MAD">
+						&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspMAD<br>
+						</label>
+							<audio id="MAD" controls loop>
+							<source
+									type="audio/mpeg"
+									src="figures/audio/MAD.wav"/>
+								</audio>
+					</div>
+				</div>
+				</section>
+				<section>
+				<h1>Conclusion</h1>
+				<ul><li>A theoretical interpretation for the PWF</li></ul>
+					<span style="text-align:center;">$$\hat{s}=\frac{\sigma_{s}^{2}}{\sigma_{s}^{2}+\frac{\mathbb{M}\left(\phi_{n}\right)}
+						{\mathbb{M}\left(\phi_{s}\right)}\sigma_{n}^{2}}x$$</span>
+					<ul><li>Differents characteristics for different source</li>
+					<li>New fast denoising algorithm (63 seconds to denoise 90 speechs)</li>
+					<div class="references" style="margin-top:1em;">
+						<ul><li>M Fontaine, A Liutkus, L Girin, and R Badeau.(2017) Explaining the parameterized Wiener filter with alpha-stable processes.</li></ul>
+					</div>
+				</section> -fee->
+
+				<section class="cover" data-background="figures/background.jpg" data-state="no-title-footer no-progressbar has-dark-background">
+					<h2 id='coverh2'>II-B: Multichannel Case</h2>
+				</section>
+
+				<section>
+					<h1 style="margin-top:-0.1em;">Mixing & Filtering Model for$K$ microphones</h1>
+					<h2 style="margin-top:-0.4em;"> Mixing model</h2>
+					<div class="multiCol" style="margin-top:-0.2em;">
+						<div class="col">
+							<h3>Target source model</h3>
+							<span style="text-align:center;">$$\bold{y}\left(f,t\right)\sim\mathcal{N}_{c}\left(0,\,\bold{R}_{f}\sum_{l=1}^{L}w_{fl}h_{lt}\right)$$</center>
+							<ul><li style="margin-top:0.6em;">$\bold{R}_{f}\in\mathbb{C}^{K\times K}$: spatial covariance matrix</li>
+								<li>$\left(w_{fl}\right)\in\mathbb{R}_{+}^{F\times L},\left(h_{lt}\right)\in\mathbb{R}_{+}^{L\times T}$: NMF</li>
+								<li>$\bold{\Theta}=\left\{ \bold{R}_{f},w_{fl},h_{lt}\right\} _{f,l,t}$: parameters of$\bold{y}$</li></ul>
+						</div>
+						<div class="col">
+							<h3>Residual source model</h3>
+							<span style="text-align:center;">$$\bold{r}\left(f,t\right)|\phi\left(f,t\right)\sim\mathcal{N}_{c}\left(0,\,\phi\left(f,t\right)\sigma_{f}\bold{I}_{K}\right)$$</center>
+
+						<ul><li style="margin-top:0.6em;">$\bold{\sigma}=\left\{ \sigma_{f}\right\} _{f}$: frequency dependent positive scalars</li>
+							<li>$\bold{I}_{K}$: identity matrix</li>
+							<li>$\bold{\Phi}=\left\{ \phi\left(f,t\right)\right\} _{ft}$: impulse variables</li></ul>
+							</div>
+					</div>
+					<h2>Filtering model</h2>
+					<ul><li>Multichannel Wiener filter + marginalization over$\bold{\phi}|\bold{x}$ yields:</li></ul>
+<span style="text-align:center;">$$\hat{\bold{y}}\left(f,t\right)=\mathbb{E}_{\bold{\Phi}\mid\bold{x}}\left[\mathbb{E}\left[\bold{y}\left(f,t\right)|
+	\bold{x}\left(f,t\right),\bold{\Phi},\bold{\Theta},\bold{\sigma}\right]\right]=\bold{G}\left(f,t\right)\bold{x}\left(f,t\right)$$
+<ul><li>$\bold{G}\left(f,t\right)\triangleq\bold{C}_{ft}^{\bold{y}}\,\mathbb{E}_{\bold{\Phi}\mid\bold{x}}\left[\left(\bold{C}_{ft}^
+	{\bold{x}|\phi}\right)^{-1}\right]$: marginal Wiener mask</li>
+<li>$\bold{C}_{ft}^{\bold{x}|\phi},\bold{C}_{ft}^{\bold{y}}$: a posteriori covariance matrix of $\bold{x}\left(f,t\right)|\bold{\phi}\left(f,t\right)$
+	 and covariance matrix of $\bold{y}\left(f,t\right)$</li>
+</ul>
+</section>
+
+<section>
+<h1>Parameter estimation strategy</h1>
+<h2>Solution for $\bold{\Theta}$</h2>
+Maximum likelihood estimator based on EM algorithm with latent variables $\bold{y},\bold{r}$ and observed variables $\bold{x},\bold{\Phi}$:
+<span style="text-align:center;">
+$$\begin{array}{clcl}
+\text{E-Step: } & \mathcal{Q}_{n}\left(\bold{W},\bold{H},\bold{R}\right) & = & -\mathbb{E}_{\bold{\Phi}|\bold{x},\bold{W}^{\left(n-1\right)},\bold{H}^{\left(n-1\right)}}\left[\mathcal{L}_{n}\left(\bold{W},\bold{H},\bold{R}\right)\right]\\
+\text{M-Step:} & \left(\bold{W}^{\left(n\right)},\bold{H}^{\left(n\right)},\bold{R}^{\left(n\right)}\right) & = & \arg\min_{\bold{W},\bold{H},\bold{R}}\mathcal{Q}_{n}\left(\bold{W},\bold{H},\bold{R}\right)
+\end{array}$$
+</span>
+<ul><li>$\mathcal{L}_{n}\left(\bold{W},\bold{H},\bold{R}\right)$: joint log-probability of the complete data at iteration$n$</li></ul>
+
+<h2>Solution for $\bold{\sigma}$</h2>Property of the dimension 1 ECMS distribution [1]:
+<span style="text-align:center;">
+$$\sigma_{f}\leftarrow\mathbb{M}\left(\Vert\sum_{t}\bold{x}\left(f,t\right)\Vert^{\alpha/2}\right)^{2}$$</span>
+<ul><li>$\mathbb{M},\Vert.\Vert$:Respectively median and Hermitian norm</li></ul>
+<div class="references"><ul><li>[1] S. Cambanis, R. Keener, and G. Simons. (1983) On $\alpha$-symmetric multivariate distributions</li>
+</ul>
+</div>
+</section>
+
+<section>
+	<h1>Expectation-Maximisation (EM) Algorithm</h1>
+	<h2>E-Step</h2>
+Upper-bound of the marginalized negative log-likelihood$\mathcal{L}_{n}\left(\bold{W},\bold{H},\bold{R}\right)$:
+<span style="text-align:center;">$$\mathbb{E}_{\bold{\Phi}\mid\bold{x}}\mathcal{L}_{n}\left(.\right)\leq\mathcal{Q}_{n}^{+}\left(.\right)$$</span>
+<h2>M-Step</h2>
+$\mathcal{Q}_{n}^{+}\left(.\right)$ is minimized thanks to multiplicative update rules (MUR) for$\left(w_{fl}\right)$ and$\left(h_{lt}\right)$ + update of $\bold{R}_{f}$:
+<span style="text-align:center;">$$\bold{R}_{f}\leftarrow\left(\sum_{l=1}^{L}w_{fl}h_{lt}\right)^{-1}\times\sum_{t}\left(\bold{C}_{ft}^{\bold{yy}^{\star}|\bold{x}}\right)$$</span>
+<ul><li>$\bold{C}_{ft}^{\bold{yy}^{\star}|\bold{x}}$: total posterior variance for the speech source.</li>
+<li style="margin-bottom:0.4em;">MUR involve two matrices to be calculated:</li></ul>
+<span style="text-align:center;">
+$$\bold{\bold{\Xi}}{}_{ft}=\mathbb{E}_{\bold{\Phi}\mid\bold{x}}\left[\left(\bold{C}_{ft}^{\bold{x}|\phi}\right)^{-1}\right];
+\,\bold{P}{}_{ft}=\mathbb{E}_{\bold{\Phi}\mid\bold{x}}\left[\left(\bold{C}_{ft}^{\bold{x}|\phi}\right)^{-1}\bold{x}\left(f,t\right)
+\bold{x}\left(f,t\right)^{\star}\left(\bold{C}_{ft}^{\bold{x}|\phi}\right)^{-1}\right]$$</span><br>
+<div class="question">How to estimate$\bold{\bold{\Xi}}{}_{ft}$ and$\bold{P}{}_{ft}$?</div>
+</section>
+
+<section>
+	<h1>Metropolis-Hastings (MH) Algorithm</h1>
+	Empirical estimation of $\bold{\bold{\Xi}}{}_{ft}$ and $\bold{P}{}_{ft}$:
+	<span style="text-align:center;">$$\overline{\bold{\Xi}}{}_{ft}\simeq\frac{1}{I}\sum_{i=1}^{I}\left(\bold{C}_{ft}^{\bold{x}|\varphi_i\left(f,t\right)}\right)^{-1};
+	\;\overline{\bold{P}}{}_{ft}\simeq\frac{1}{I}\sum_{i=1}^{I}\left(\left(\bold{C}_{ft}^{\bold{x}|\varphi_i\left(f,t\right)}\right)^{-1}
+	\bold{x}\left(f,t\right)\bold{x}\left(f,t\right)^{\star}\left(\bold{C}_{ft}^{\bold{x}|\varphi_i\left(f,t\right)}\right)^{-1}\right)$$</span>
+	<p>where $\varphi_i\left(f,t\right)$ is sampled using the MH algorithm with acceptance probability</p>
+	<span style="text-align:center;">$$\text{acc}\left(\varphi\left(f,t\right)\rightarrow\varphi'\left(f,t\right)\right)=\min\left(1,\frac{\mathcal{N}_{c}\left(\bold{x}\left(f,t\right);
+	0,\,\varphi'\left(f,t\right)\sigma_{f}\bold{I}_{K}+\bold{C}_{ft}^{\bold{y}}\right)}{\mathcal{N}_{c}
+	\left(\bold{x}\left(f,t\right);0,\,\varphi\left(f,t\right)\sigma_{f}\bold{I}_{K}+\bold{C}_{ft}^{\bold{y}}\right)}\right)$$</span>
+
+<ul><li style="margin-top:1em;">Acceptance test: draw $u\sim\mathcal{U}\left(\left[0,1\right]\right)$:<br>
+
+&nbsp&nbsp&nbsp$\rightarrow~~~$if $u<\text{acc}\left(\varphi_{i-1}\left(f,t\right)\rightarrow\varphi'\left(f,t\right)\right)$, then
+ $\varphi_i\left(f,t\right)=\varphi'\left(f,t\right)$ <b>(acceptance)</b><br>
+
+&nbsp&nbsp&nbsp$\rightarrow~~~$otherwise, $\varphi_i\left(f,t\right)=\varphi_{i-1}\left(f,t\right)$ <b>(rejection)</b></li>
+</section>
+
+<section>
+	<h1>Maximizing the energy through beamforming technique</h1>
+	<div class="affirmation"><b>Goal</b>: Estimate the single-channel signal from the estimated multichannel one</div>
+
+<p>Consider the following model:</p>
+<span style="text-align:center;">$$\hat{s}\left(f,t\right)\triangleq\bold{B}_{f}^{\star}\hat{\bold{y}}\left(f,t\right)$$</span>
+<ul><li style="margin-top:1em;">$\hat{\bold{y}}\left(f,t\right)\in\mathbb{C}^{K}$: speech signal obtained after “Wiener filtering”</li>
+<li>$\bold{B}_{f}\in\mathbb{C}^{K}$: time-invariant beamformer</li>
+<li>$\hat{s}\left(f,t\right)\in\mathbb{C}$: single-channel signal</li>
+
+<p>We also have:</p>
+<span style="text-align:center;">$$~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\frac{1}{T}\sum_{t}\mathbb{E}\left(\left|\bold{B}_{f}^{\star}\bold{y}\left(f,t\right)\right|^{2}|
+	\bold{x}\left(f,t\right)\right)=\bold{B}_{f}^{\star}\frac{1}{T}\sum_{t}\left(\bold{C}_{ft}^{\bold{yy}^{\star}|\bold{x}}\right)\bold{B}_{f}$$</span>
+<div class="affirmation">Maximizing the energy of $\bold{B}_{f}^{\star}\bold{y}\left(f,t\right)\mid\bold{x}\left(f,t\right)$
+	 s.t. $\left\Vert \bold{B}_{f}\right\Vert =1$  $\Rightarrow$ choosing $\bold{B}_{f}$ as the principal eigenvector of  $\frac{1}{T}\sum_{t}\left(\bold{C}_{ft}^{\bold{yy}^{\star}|\bold{x}}\right)$
+</section>
+
+<section>
+<h1 style="margin-top:-0.4em;">Proposed Methods & Settings</h1>
+<h2 style="margin-top:-0.4em;">Proposed Methods</h2>
+<ul><li><b>ARC</b>: Proposed method called alpha residual component (ARC).
+	$N=10$ iterations for the EM part and$\alpha=1.9$.
+	Initialization : $\bold{R}_{f}\leftarrow\bold{I}_{K}$ and random for NMF coefficients</li>
+	 <li><b>MWF</b>: Multichannel Wiener filter (MWF) Both noise and speech are Gaussian</li>
+	 <li><b>GEVD-MWF</b>: Multichannel Wiener filter based on a low-rank approximation of the autocorrelation matrix of the speech signal [2]</li>
+ </ul>
+ <h2>Settings</h2>
+ <ul><li>Mono speech + noise (babble noise, restaurant or train)</li>
+<li>Two angular deviations between $\bold{y}$ and $\bold{s}:30^{\circ}$ or$90^{\circ}$, and$4$ signal-to-noise (SNR) ratios of$-5,\,0,\,5,\,10\,$dB</li>
+<li>Anechoic scenario and$\,RT_{60}=500\,ms$</li>
+ </ul> <h2>Scores</h2>
+	<ul><li>Speech intelligibility weighted spectral distortion (SIW-SD) measure</li>
+		<li>Speech intelligibility-weighted SNR (SIW-SNR)</li></ul>
+ <div class="references">
+	 <ul><li>[2] R. Serizel and al. (2014). Rank approximation based multichannel Wiener filter
+			algorithms for noise reduction with application in cochlear implants</li></ul>
+ </div>
+</section>
+
+<section>
+	<h1>Results</h1>
+ <div class="multiCol" style="margin-top:-1.8em;">
+	 <div class="col">
+		 <center><img src="figures/SNR_room0.png" alt="" style="float:center; background-color;" width="71%"></center>
+				 <center><img src="figures/SNR_room500.png" alt="" style="float:center; background-color;" width="73%"></center>
+	 </div>
+	 <div class="col">
+		 <center><img src="figures/SD_room0.png" alt="" style="float:center; background-color;" width="78%"></center>
+				 <center><img src="figures/SD_room500.png" alt="" style="float:center; background-color;" width="76%"></center>
+	 </div>
+ </div>
+</section> -->
+
+				<!-- <section class="cover" data-background="figures/background.jpg" data-state="no-title-footer no-progressbar has-dark-background">
+					<h2 id='coverh2'>III: Multivariate$\alpha-$ stable Filtering Theory</h2>
+				</section>
+				<section>
+					<aside class="notes">
+
+					The representation theorem means that an SαS c K random vector is
+					 distributed as the sum of infinitely many contributions, coming
+					 from all directions θ ∈ S K on the sphere. Γ x (dθ) may thus be
+					 interpreted as the scale factor of the contributions pointing in
+					 the direction θ
+					</aside>
+					<h1>Spatial Representation</h1>
+					<h2 style="margin-top:-0.4em;">Spatial density</h2>
+					<ul><li>$\bold{x},\varphi_x$: complex random vector in $\mathbb{C}^{K}$ and its characteristic function (chf.)</li>
+						<li>An isotropic vector is fully described by its chf. :</li></ul>
+						<span style="text-align:center;">$$\forall\bold{\theta}'\in\mathbb{C}^{K},\:\varphi_{\bold{x}}\left(\bold{\theta}'\right)=
+							\exp\left(-\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\left|\left\langle \bold{\theta}',
+							\bold{\theta}\right\rangle \right|^{\alpha}\Gamma_{\bold{x}}\left(d\bold{\theta}\right)\right)$$</span>
+						<ul><li>$\Gamma_{\bold{x}}$: symmetric real measure on the hypersphere$S_{\mathbb{C}}^{K}$ called the <b>spatial density</b></li>
+							<li>We thus write$\bold{x}\sim S\alpha S_{c}^{K}\left(\Gamma_{\bold{x}}\right)$ to be an isotropic distribution controlled by $\Gamma_{\bold{x}}$</li></ul>
+						<h2>Spatial spectrum</h2>
+						<ul><li>$\mathcal{X}$ is a <b>Spatial Spectrum</b> with control density $\Gamma_{\bold{x}}$ iff</br>
+						&nbsp&nbsp&nbsp$\rightarrow~~~\forall A\subset\mathcal{B}\left(S_{\mathbb{C}}^{K}\right),~~\mathcal{X}\left(A\right)\sim S\alpha S_{c}\left(\Gamma_{\bold{x}}\left(A\right)\right)$</br>
+						&nbsp&nbsp&nbsp$\rightarrow~~~ \forall A,B\subset\mathcal{B}\left(S_{\mathbb{C}}^{K}\right),~~A\cap B=\emptyset,
+						 \mathcal{X}\left(A\right)$ and$\mathcal{X}\left(B\right)$ are independents a.s.</br></li>
+						</ul>
+						<h2>Spatial representation theorem</h2>
+						<span style="text-align:center;">$$
+						\bold{x}\sim S\alpha S_{c}^{K}\left(\Gamma_{\bold{x}}\right) \Leftrightarrow \bold{x}=^d\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\bold{\theta}\mathcal{X}\left(d\bold{\theta}\right)
+						$$</span>
+						<div class="references" style="float:left;">
+							<ul><li>Samoradnitsky, G. (1995). Stable non-Gaussian random processes.</li></ul>
+						</div>
+				</section>
+
+				<section>
+				<h1>Mixture of$\alpha-$ stable vectors</h1>
+				<div class="multiCol">
+					<div class="col">
+						<center><img src="figures/VM_sources.png" alt="" style="float:center; background-color; margin-top:-0.4em;" width="90%"></center>
+					</div>
+					<div class="col">
+						<center><img src="figures/VM_mix.png" alt="" style="float:center; background-color; margin-top:-0.4em;" width="92%"></center>
+					</div>
+				</div>
+				We assume that:</br>
+				<ul><li>$\bold{x}=\sum_{j=1}^{J}\bold{y}_{j};~~\forall j,\,\bold{y}_{j}\sim S\alpha S_{c}^{K}\left(\Gamma_{j}\right) \Rightarrow \bold{x}\sim S\alpha S_{c}^{K}\left(\Gamma_{\bold{x}}\triangleq\sum_j\Gamma_j\right)$</li>
+				<li>The representation theorem gives : $\forall j,\:\bold{y}_{j}=^d\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\bold{\theta}\mathcal{Y}_{j}\left(d\bold{\theta}\right) \Rightarrow \mathcal{X}\triangleq\sum_{j}\mathcal{Y}_{j}$
+				 defines a spatial spectrum associated to$\bold{x}$</li>
+				</ul>
+				</section>
+
+				<section>
+					<h1>Spatial spectrum filter</h1>
+					<h2>Estimator Criterion</h2>
+					<ul><li>$\hat{\mathcal{X}}\left(d\bold{\theta}\right)$ such that for any function$\psi$ satisfying
+						 $\int_{\bold{\theta}\in S_{\mathbb{C}}^{K}}\left|\psi\left(\bold{\theta}\right)\right|^{\alpha}\Gamma_{\bold{x}}\left(d\bold{\theta}\right)<+\infty$:</li>
+					</ul>
+					<span style="text-align:center;">$$\mathbb{E}\left[\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\psi\left(\bold{\theta}\right)
+						\mathcal{X}\left(d\bold{\theta}\right)\,\bigg|\,\bold{x}\right]=
+						\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\psi\left(\bold{\theta}\right)\hat{\mathcal{X}}\left(d\bold{\theta}\right)$$</span>
+					<h2>Estimation of$\mathcal{X}$</h2>
+						<ul><li>$\hat{\mathcal{X}}\left(d\bold{\theta}\right)$ can be rewritten as $g_{_{_\mathcal{X}}}\left(\bold{x},\bold{\theta}\right)\Gamma_{x}\left(d\bold{\theta}\right)$ where$g_{_{_\mathcal{X}}}$ is a fraction of two integrals along the hypersphere$\mathcal{S}_{\mathbb{C}}^{K}$ which depends
+							of $\theta$, the Levy-exponent $I_x \triangleq-\log \varphi_x$ and two series which can be pre-computed.</li>
+						</ul>
+					<h2>Separation</h2>
+					<ul><li> We proved that:</li></ul>
+					<span style="text-align:center;">$$\hat{\bold{y}}_{j}\triangleq\mathbb{E}\left[\bold{y}_{j}\big|\bold{x}\right]=
+						\int_{\bold{\theta}\in\mathcal{S}_{\mathbb{C}}^{K}}\bold{\theta}g_{_{_\mathcal{X}}}\left(\bold{x},\bold{\theta}\right)\Gamma_{j}(d\bold{\theta})$$</span>
+				</section>
+
+				<section>
+					<h1> Covariation-minimizing filter (1/2)</h1>
+					<h2> Covariation & Covariation norm</h2>
+					<ul><li> No $2^{nd}-$ order statistics for $\alpha < 2$</li>
+					<li style="margin-bottom:0.3em;"> For $\alpha >1$ and $\bold{x}\triangleq\left(x_1,x_2\right)\sim S\alpha S_c^2\left(\Gamma_{\bold{x}}\right)$ the <b>covariation</b> is:
+					</ul>
+					<span style="text-align:center;">$$\left[x_{1},x_{2}\right]_{\alpha}\triangleq\int_{z=
+						\left(z_{1},z_{2}\right)\in\mathcal{S}_{\mathbb{C}}^{2}}z_{1}z_{2}^{\left\langle \alpha-1\right\rangle }\Gamma_{x}\left(dz\right)$$</span>
+					<ul><li style="margin-top:0.3em;">$\forall z\in\mathbb{C},\:z^{\left\langle \alpha\right\rangle }=
+						z^{\star}\left|z\right|^{\alpha-1}$: signed power function</li> -->
+						<!-- Let$\mathfrak{S}_{\alpha}$ be the linear space of jointly$S\alpha S_{c}$. For $x\in\mathfrak{S}_{\alpha}$ and $\alpha>1$ -->
+						<!-- <li> The <b>covariation norm</b> is:</li>
+					</ul>
+					<span style="text-align:center;">$$\left\Vert x\right\Vert {}_{\alpha}=\left(\left[x,x\right]_{\alpha}\right)^{1/\alpha}$$</span>
+					<h2>Covariation filtering technique</h2>
+					<ul>
+					<li> Linear estimator$\hat{y}_{jk}=\left\langle \bold{w}_{jk},\bold{x}\right\rangle$ + enforcement of perfect separation$\sum_{j}\bold{w}_{jk}=\bold{e}_{k}$</li>
+					<li style="margin-top:0.3em;"> For each entries $k$, we have the following optimization problem:</li>
+				</ul>
+				<span style="text-align:center">$$\begin{array}{cc}
+							{\text{minimize}}_{\bold{w}_{jk}} & \sum_{j}\left\Vert y_{jk}-\left\langle \bold{w}_{jk},\bold{x}\right\rangle \right\Vert _{\alpha}^{\alpha}\\
+							\text{subject to} & \sum_{j}\bold{w}_{jk}=\bold{e}_{k}.
+							\end{array}$$</span>
+				</section>
+
+				<section>
+					<h1> Covariation-minimizing filter (2/2)</h1>
+					<h2>Optimization problem</h2>
+					<ul><li>Karush-Kuhn-Tucker conditions are verified $\Rightarrow$ Existence of a unique solution</li>
+					<li style="margin-bottom:0.9em;"> Equivalent to solve the following fixed-point problem:</li>
+					</ul>
+					<span style="text-align:center;">$$\bold{P}_{jk}\leftarrow\int\left(\frac{\bold{\theta}\bold{\theta}^{\star}}{\left|\theta_{k}-\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}-\frac{\bold{\theta}\bold{\theta}^{\star}}{\left|\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}\right)\Gamma_{j}\left(d\bold{\theta}\right)+\int\frac{\bold{\theta}\bold{\theta}^{\star}}{\left|\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}\Gamma_{x}\left(d\bold{\theta}\right).$$</br>
+					$$\bold{\lambda}_{k}\leftarrow\left(\sum_{j}\bold{P}_{jk}^{-1}\right)^{-1}\left(
+					\sum_{j}\bold{P}_{jk}^{-1}\int\frac{\bold{\theta}\theta_{k}^{\star}}
+					{\left|\theta_{k}-\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}
+					\Gamma_{j}\left(d\bold{\theta}\right)-\bold{e}_{k}\right)$$</br>
+					$$\bold{w}_{jk}\leftarrow\bold{P}_{jk}^{-1}\left(\int\frac{\bold{\theta}\theta_{k}^{\star}}
+					{\left|\theta_{k}-\left\langle \bold{w}_{jk},\bold{\theta}\right\rangle \right|^{2-\alpha}}
+					\Gamma_{j}\left(d\bold{\theta}\right)-\bold{\lambda}_{k}\right)$$
+					</span>
+					<ul><li style="margin-top:0.8em;">Initialization: $\forall j,k,\,\bold{w}_{jk}=J^{-1}\bold{e}_{k}, \bold{\lambda}_{k}=0$ and $\bold{P}_{j,k}$ randomly</li></ul>
+					<h2> Reconstruction </h2>
+					<ul><li>Use the estimated mask$\bold{w}_{jk}$:</li></ul><span style="text-align:center;">$$\forall j,k,\hat{y}_{jk}=\left\langle \bold{w}_{jk},\bold{x}\right\rangle $$</span>
+				</section>
+
+				<section>
+					<h1>The Gaussian$\alpha\rightarrow2$ case</h1>
+					<ul><li>In theory, the previous method do not hold for $\alpha=2$ (non uniqueness of $\Gamma_{\bold{x}}, \Gamma_j$) </li>
+					<li> when $\alpha\rightarrow2$, we get:</li>
+					</ul>
+					<span style="text-align:center;">$$\bold{P}_{jk}=\bold{P}=\int\bold{\theta}\bold{\theta}^{\star}\Gamma_{\bold{x}}\left(d\bold{\theta}\right)$$</span>
+					<ul><li style="margin-top:0.8em; margin-bottom:0.8em;">Thus, it can be proved that: $\bold{x}\sim \mathcal{N}_c\left(0;\bold{P}\right)$ and $\bold{y}_j \sim \mathcal{N}_c\left(0;\bold{P}_j\right)$ where:</li></ul>
+					<span style="text-align:center;">$$\bold{P}_{j}=\int\bold{\theta}\bold{\theta}^{\star}\Gamma_{j}\left(d\bold{\theta}\right)$$</span>
+					<ul><li style="margin-bottom:0.8em;">The estimates $\hat{\bold{y}}_{j}$ become the classical multichannel Wiener filter:</li></ul>
+					<span style="text-align:center;">$$\hat{\bold{y}}_{j}=\bold{P}_{j}\left(\sum_{j'}\bold{P}_{j'}\right)^{-1}\bold{x}$$</span>
+				</section>
+
+				<section>
+				<h1>Assessments</h1>
+				<div class="affirmation" style="margin-top:-0.8em;">We assume the knowledge of the spatial densities$\Gamma_j, ~\forall j$</div>
+				<h2 style="margin-top:0.8em;">Filtering methods</h2>
+				<ul><li><b>MWF</b>: $\alpha \rightarrow 2$ case using the true $\Gamma_j$ in$\bold{P}_{j}=
+					\int\bold{\theta}\bold{\theta}^{\star}\Gamma_{j}\left(d\bold{\theta}\right)$</li>
+					<li><b>$\alpha-$SSF</b>: Spatial spectrum filter with a direct estimation of$g_{_{_\mathcal{X}}}\left(\bold{x},\bold{\theta}\right)$</li>
+					<li><b>$\alpha-$CMF</b>: Covariation-minimizing filter with$50$ iterations for the fixed-point method.</li></ul>
+						<h2> Integral computation</h2>
+						<ul><li>For $\theta_1, \cdots, \theta_P \in \mathcal{S}^K$, the approximation goes as $\int\bold{\theta}
+							f\left(\bold{\theta}\right)\Gamma\left(d\bold{\theta}\right)\approx\sum_{p}\bold{\theta}_{p}
+							f\left(\bold{\theta}_{p}\right)\Gamma\left(\Theta_{p}\right)$
+							where $\Gamma\left(\Theta_{p}\right)\simeq\gamma\left(\bold{\theta}_{p}\right)\Delta_{\Theta}$ with $\Gamma\left(d\bold{\theta}\right)=\gamma\left(\bold{\theta}\right)d\bold{\theta}$ dominated by the Lebesgue measure.
+						</li></ul>
+						<h2>Metric</h2>
+						<ul>
+							<li>The mean-absolute error:$\text{MAE}\left(\bold{y},\hat{\bold{y}}\right)=\sum_{j}\mathbb{E}\left(\left|\bold{y}_{j}-\hat{\bold{y}}_{j}\right|\right)$ </li>
+				</ul>
+				<aside class="notes"> Expliquer que l'erreur moyenne quadratique ici n'a pas de sens car en théorie pour $alpha< 2$, le moment d'ordre 2 est infini.</aside>
+
+				</section>
+				<section>
+				<h1>Performance vs Spatial Distance of Components - Settings</h1>
+				<ul><li>Vectors of dimension$K=2$ on the semi-circle $\bold{\theta}\in\mathcal{S}_{\mathbb{R}}^{K}$</li>
+					<li>$\Gamma_{j}=\mathcal{V}_{\bold{\mu}_{j},\kappa}$ where:</li>
+				</ul>
+				<span style="text-align:center;">$$~~~~~~~~~~\mathcal{V}_{\bold{\mu},\kappa}\left(d\bold{\theta}\right)\propto\exp\left(\kappa\bold{\mu}^{\top}
+					\bold{\theta}\right)d\bold{\theta}~~~~~~~~~\text{Von-mises Fisher distribution}$$</span>
+				<ul><li>concentration parameter $\kappa=15$ and mean directions $\bold{\mu}_{j}$ for the sources are separated by$\left\{ 5,15,\cdots,85\right\}$ degrees with$\bold{\mu}_{1}$ randomly positioned on the semi-circle</li>
+				 <li>$0.2$ step-size for$\alpha\in\left[1.2,~2\right]$, $P=180$ arcs on the semi-circle,$N=500$ components and$100$ differents experiments.</li>
+				 <center></br><img src="figures/angular_deviation.png" alt="" style="float:center; background-color;" width="60%"></center>
+				</ul>
+			</section>
+
+			<section>
+				<h1>Performance vs Spatial Distance of Components - Results</h1>
+				<div class="multiCol">
+					<div class="col">
+					<center>$\alpha=1.6$<img src="figures/experience1-1.png" alt="" style="float:center; background-color; margin-top:-0.4em;" width="100%"></center>
+
+				</div>
+				<div class="col">
+						<center><img src="figures/experience1-2.png" alt="" style="float:center; background-color; margin-top:-0.4em;" width="100%"></center>
+				</div>
+			</div>
+			</section>
+
+
+				<section>
+					<h1>Performance VS Number of Components</h1>
+					<h2 style="margin-top:-0.9em;">Settings</h2>
+					<ul><li>filtering methods in the complex case with $K=2$.</li>
+					<li>$J=2,\cdots,8$ $\alpha\in\left[1.2,2\right]$, and $N=500$ independent realizations. 100 independents experiments are run.</li>
+					<li>$0.2$ step-size for$\alpha\in\left[1.2,~2\right]$, $P=180$ arcs on the semi-circle,$N=500$ components and$100$ differents experiments.</li>
+							<li>$\Gamma_{j}=\mathcal{V}_{\bold{\mu}_{j},\kappa_j}$ with random$\mu_j\in \mathbb{R}^4, \kappa_j>0$</li>
+				</ul>
+				<h2>Results</h2>
+				<div class="multiCol">
+					<div class="col">
+					<center><img src="figures/experience2.png" alt="" style="float:center; background-color; margin-top:-0.4em;" width="90%"> Light area: standard deviation</center>
+
+				</div>
+				<div class="col">
+						<center><img src="figures/elapsed-time.png" alt="" style="float:center; background-color; margin-top:-0.4em;" width="130%"></center>
+				</div>
+			</div>
+				</section>
+				<section>
+					<h1>Filtering Spatially Scattered Sources</h1>
+					<h2>Settings</h2>
+					<ul><li> Filtering methods in the real case with$K=2$ and$J=4$ components.</li>
+					<li>$\Gamma_{j}=\sum_{c}w_{jc}\mathcal{V}_{\bold{\mu}_{jc},\kappa_{jc}}$:$w_{jc}\in\left[0,1\right]$ are weights parameters</li>
+					<li>$\Gamma_{j}$ are mixtures of$c=2,3,4$ VMF distributions, with parameters$w_{jc},\bold{\mu}_{jc}$ and$\kappa_{jc}$ drawn randomly</li>
+					<li>$\alpha=1.4$,$P=180$ arcs on the semi-circle,$N=500$ components and$100$ differents experiments.</li>
+				</ul>
+				<h2>Results</h2>
+				<center><img src="figures/experience3.png" alt="" style="float:center; background-color; margin-top:-0.8em; margin-left:-1.9em;" width="90%"></center>
+				</section> -->
+				<!-- <section>
+					<h1>Conclusion and Future works</h1>
+					<h2>Conclusion</h2>
+					<ul><li>$S\alpha S$ vector characterized by a <b>spatial density</b>: meaning of deterministic directions of arrivals made for multivariate observations</li>
+						<li>$\alpha-$SSF based on a <b>spatial spectrum</b> decomposition: combination of nonlinear beamformer followed by a scalar filter</li>
+						<li>$\alpha-CMF$: a linear filtering which generalize the Multichannel Wiener filter in the $\alpha-$stable theory</li>
+						<li>Generalization of $\alpha-$harmonizable processes to the multivariate case</li>
+					 </ul>
+					 <h2>Future Works</h2>
+					 <ul><li>Estimation of spatial densities</li>
+						 <li> Application to audio processing, image processing</li>
+					 </ul>
+					 <div class="references" style="margin-top:0.8em;">
+						 <ul><li>M Fontaine, A Liutkus, and R Badeau.(2018) Multivariate Alpha-stable Filtering (Submitted).</li></ul>
+					 </div>
+
+
+
+<section>
+	<h1>Conclusion & Future Work</h1>
+	<h2>Conclusion</h2>
+	<ul><li>New multichannel filtering approach</li>
+	<li>Lower scores than state-of-the-art methods in terms of SIW-SNR improvement</li>
+	<li>But better SIW-SD scores in reverberant and noisy scenario $\Rightarrow$ important for speech recognition hearing systems</li></ul>
+<h2>Future work</h2>
+<ul><li>Combine GEVD-MWF and ARC in order to improve SIW-SNR and SIW-SD scores</li></ul>
+<div class="references" style="margin-top:1em;">
+	<ul><li>Fontaine, M., Stöter, F. R., Liutkus, A., Şimşekli, U., Serizel, R., & Badeau, R. (2018, July).
+	 Multichannel Audio Modeling with Elliptically Stable Tensor Decomposition</li></ul>
+</div>
+</section>-->
+<!-- <section class="cover" data-background="figures/background.jpg" data-state="no-title-footer no-progressbar has-dark-background">
+	<h2 id='coverh2'>IV: Conclusion</h2>
+</section>
+<section>
+	<h1>Applications of $\alpha-$stable process</h1>
+ <h2>Audio source localization</h2>
+		<ul><li>Using once the datas in order to localize source in a reverberant environement</li>
+		<li>Outperforms classical algorithms in many scenarios</li>
+		<li>Robust even withfew microphones</li>
+		<li>Many acoustics models possible for the estimation</li>
+	</li></ul>
+	<h2>A new multichannel filtering method</h2>
+	<ul><li>Applicable in all areas of signal processing (imaging, audio, SAR, EEG)</li>
+		<li>One of them generalizes the classical Wiener filter</li>
+		<li>Works even with a complex spatial configuration of the sources</li>
+	</ul>
+	<h2>Speech Enhancement task</h2>
+	<ul>
+		<li>Give a more theoretical approach of parameterized Wiener filter</li>
+		<li>Provide a fast algorithm in single-channel case which do not use a voice activity detector</li>
+		<li>Better results in realistic scenarios with an important noise</li>
+	</ul>
+</section>
+<section>
+	<h1>Future Work</h1>
+	<h2>Expansion of previous work</h2>
+	<ul><li>
+	Estimation of spatial density in the multichannel $\alpha-$stable filtering ($\alpha-$MF): DNN, NMF, EM-approach</li>
+		<li>Provide an audio source separation algorithm with the $\alpha-$MF</li>
+			<li>Hyperspectral task using $\alpha-$MF</li>
+	<li>Multi-alpha stable denoising in the multichannel case</li>
+	<li>Multi-alpha stable in the multichannel case but for source separation</li></ul>
+  <h2>New Directions</h2>
+	<ul><li> Study of $\alpha-$ Kalman filter for robust noise (already used in seismology)</li>
+	<li>$\alpha-$ ARMA process for denoising</li>
+	</ul>
+
+</section> -->
+
+<!-- <section>
+<div class="affirmation"><b>Thank you ! </b></div>
+<div class="references" style="float:left; margin-top:0.2em;">
+	<ul><li>M Fontaine, C Vanwynsberghe, A Liutkus, and R Badeau.(2017) Scalable source localization with multichannel alpha-stable distributions, EUSIPCO 2017.</li>
+	<li>M Fontaine, C Vanwynsberghe, A Liutkus, and R Badeau.(2017) Sketching for nearfield acoustic imaging of heavy-tailed sources, LVA-ICA 2017.</li>
+	<li>M Fontaine, A Liutkus, L Girin, and R Badeau.(2017) Explaining the parameterized Wiener filter with alpha-stable processes, WASPAA 2017.</li>
+	<li>Fontaine, M., Stöter, F. R., Liutkus, A., Şimşekli, U., Serizel, R., & Badeau, R. LVA-ICA 2018. Multichannel Audio Modeling with Elliptically Stable Tensor Decomposition.</li>
+	<li>M Fontaine, A Liutkus, and R Badeau.(2018) Multivariate Alpha-stable Filtering (Submitted) IEEE-TSP.</li>
+	</ul>
+</div>
+</section> -->
+</div>
+			<div class='footer'>
+				<img src="css/theme/img/inria-bottom.svg" alt="Logo" />
+				<div id="middlebox">Speech Enhancement with Cauchy Deep Speech Prior</div>
+			</div>
+	</div>
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				controls: false,
+				progress: true,
+				history: true,
+				center: false,
+				slideNumber: true,
+				minScale: 0.1,
+				maxScale: 5,
+				transition: 'none', //
+
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/math-katex/math-katex.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
