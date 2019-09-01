@@ -24,7 +24,7 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section class="cover" data-background="figures/background_blurred.jpg" data-state="no-title-footer no-progressbar has-dark-background">
+				<section class="cover" data-background="figures/background-blur.jpg" data-state="no-title-footer no-progressbar has-dark-background">
 					<h1 style="color:white">EUSIPCO 2019, Coruña</h1>
 					<h2 id='coverh2'>Cauchy Multichannel Speech Enhancement with a Deep Speech Prior</h2>
 					<h3><a href="https://matfontaine.github.io">matfontaine.github.io</a></h3>
@@ -142,11 +142,12 @@
 		 </div>
 		 <div class="col">
 			 <video data-autoplay>
-				 <source data-src="figures/video/gaussian.mp4" type="video/mp4" />
-			 </video>
-			 <video data-autoplay>
 				 <source data-src="figures/video/cauchy.mp4" type="video/mp4" />
 			 </video>
+			 <video data-autoplay>
+				 <source data-src="figures/video/gaussian.mp4" type="video/mp4" />
+			 </video>
+
 
 		 </div>
 	 </div>
@@ -273,7 +274,7 @@ with$p_{\theta} ( \mathbf{z}_{t} ) \sim \mathcal{N} ( \mathbf{z}_{t} | \mathbf{0
 	</section>
 	<section>
 		<h1>Experimental conditions</h1>
-		<h2>Algorithms</h2>
+		<h2 style="margin-top:-0.8em;">Algorithms</h2>
 		<ul>
 			<li>Proposed Method: Cauchy <span style="font-style:italic";>VAE-MNMF</span></li>
 			<li> Similar model but on a Gaussian model: Gaussian <span style="font-style:italic";>VAE-MNMF</span> $\text{[Leg. 2018]}$</li>
@@ -292,6 +293,10 @@ with$p_{\theta} ( \mathbf{z}_{t} ) \sim \mathcal{N} ( \mathbf{z}_{t} | \mathbf{0
 		<li>Projection matrix$\bold{U}$ is taken unitary $\bold{U}=\bold{U}^{\dagger}$ and$M=8$ projectors are sampled</li>
 		<li>$64$ optimization iterations for Cauchy <span style="font-style:italic";>MNMF</span> and$50$ for both <span style="font-style:italic";>VAE-MNMF</span> methods
 	</ul>
+	<div class="references" style="margin-top:0.2em;">
+		<ul><li>S. Leglaive and al. (2019). Semi-supervised multichannel speech enhancement with variational autoencoders
+			      and non-negative matrix factorization.</li></ul>
+	</div>
 	</section>
 
 	<section>
@@ -304,20 +309,105 @@ with$p_{\theta} ( \mathbf{z}_{t} ) \sim \mathcal{N} ( \mathbf{z}_{t} | \mathbf{0
 		</ul>
 
 		</aside>
-	<h1> Conclusion & future works</h1>
-	<h2>Conclusion</h2>
-	<ul><li>Vectors that accept unusual events admits a unique spatial decomposition</li>
-	<li>Controled by:</br>
-	$~~~~~~~~~~\to$ spatial measure$\Gamma$ (correlation + energy)</br>
-	$~~~~~~~~~~\to$ spatial spectrum$\chi$ (dispatching energy)</br></li>
-	</ul>
+	<h1 style="margin-bottom:-0.2em;">Results scores</h1>
+	<img src="figures/STOI.png", width="45%">
+	<img src="figures/SDR.png", width="45%">
+	<img src="figures/PESQ.png", width="45%", style="margin-left:8.3em;"></br>
+	<span style="margin-left:6em;">Variance in white and standard deviation in black</span>
+	</section>
+	<section>
+	<h1>Audio demo</h1>
+	<div class="multiCol">
+		<div class="col">
+			<label for="Noisy">
+	&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspNoisy<br>
+	</label>
+	<audio id="Noisy" controls loop>
+	<source
+			type="audio/mpeg"
+			src="figures/audio/Noisy.wav"/>
+		</audio>
+	</div>
+	<div class="col">
+		<label for="MMSE">
+			&nbsp&nbsp&nbsp&nbspGaussian<br> <span style="font-style:italic;">VAE-MNMF</it><br>
+		</label>
+			<audio id="MMSE" controls loop>
+			<source
+					type="audio/mpeg"
+					src="figures/audio/MMSE.wav"/>
+				</audio>
+			</div>
+		<div class="col">
+			<label for="MAD">
+			&nbsp&nbsp&nbsp&nbspCauchy<br> <span style="font-style:italic;">VAE-MNMF</it><br>
+			</label>
+				<audio id="MAD" controls loop>
+				<source
+						type="audio/mpeg"
+						src="figures/audio/MAD.wav"/>
+					</audio>
+		</div>
+		<div class="col">
+			<label for="MNMF">
+			&nbsp&nbsp&nbsp&nbspCauchy <span style="font-style:italic;">MNMF</it><br>
+			</label>
+				<audio id="MNMF" controls loop>
+				<source
+						type="audio/mpeg"
+						src="figures/audio/MAD.wav"/>
+					</audio>
+		</div>
+	</div>
+	<div class="multiCol">
+		<div class="col">
+			<label for="Noisy">
+	&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspNoisy<br>
+	</label>
+	<audio id="Noisy" controls loop>
+	<source
+			type="audio/mpeg"
+			src="figures/audio/Noisy.wav"/>
+		</audio>
+	</div>
+	<div class="col">
+		<label for="MMSE">
+		&nbsp&nbsp&nbsp&nbspGaussian <span style="font-style:italic;">VAE-MNMF</it><br>
+		</label>
+			<audio id="MMSE" controls loop>
+			<source
+					type="audio/mpeg"
+					src="figures/audio/MMSE.wav"/>
+				</audio>
+			</div>
+		<div class="col">
+			<label for="MAD">
+			&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspMAD<br>
+			</label>
+				<audio id="MAD" controls loop>
+				<source
+						type="audio/mpeg"
+						src="figures/audio/MAD.wav"/>
+					</audio>
+		</div>
+	</div>
+  </section>
+	<section>
+	<h1>Conclusion</h1>
+	<h2>Discussion</h2>
+	<ul><li>New combination of VAE with heavy-tailed distribution</li>
+	<li>Globally outperforms the Gaussian model</li>
+  </ul>
 	<h2>Future works</h2>
-	<ul><li>Constrained the spatial measure for particular task</li>
-	<li>Use this model for other kind of non-scalar data</li>
-	<li>Use this model for other applications:</li>
-	$~~~~~~~~~~\to$ Audio processing $\Rightarrow$ Dereverberation, acoustic source localization</br>
-	$~~~~~~~~~~\to$ Predictions $\Rightarrow$ Control unusual spatial events
-</ul>
+	<ul>
+	<li>Score results with respect to the type of noise</li>
+	<li>Remplace the backpropagation method by a Metropolis-Hastings sampling</li>
+	<li>Extend the Cauchy <span style="font-style:italic;">VAE-MNMF</span> to elliptically contoured multivariate stable distributions</li>
+	</ul>
+	</section>
+	<section>
+	<div class="question" style="margin-top:10em;">Thank you ! Questions ?</div>
+	<div class="references" style="margin-top:10em;"><ul><li><b>M. Fontaine and al. (2019). Cauchy Multichannel Speech Enhancement with a Deep Speech Prior.</b></ul></li></div>
 	</section>
 
 
