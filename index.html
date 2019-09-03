@@ -315,7 +315,7 @@ with$p_{\theta} ( \mathbf{z}_{t} ) \sim \mathcal{N} ( \mathbf{z}_{t} | \mathbf{0
 	<img src="figures/SDR.png", width="43%", style="margin-left:8.3em;">
 </br>
 	<span style="margin-left:6em;">
-	Variance in white and standard deviation in black</span>
+	Mean in white and standard deviation in black</span>
 	</section>
 	<section>
 	<h1>Audio demo</h1>
@@ -324,75 +324,61 @@ with$p_{\theta} ( \mathbf{z}_{t} ) \sim \mathcal{N} ( \mathbf{z}_{t} | \mathbf{0
 			<label for="Noisy">
 	&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspNoisy<br>
 	</label>
-	<audio id="Noisy" controls loop>
+	<audio id="Noisy" controls>
 	<source
 			type="audio/mpeg"
-			src="figures/audio/Noisy.wav"/>
+			src="figures/audio/noisy_track.wav"/>
 		</audio>
 	</div>
 	<div class="col">
-		<label for="MMSE">
-			&nbsp&nbsp&nbsp&nbspGaussian<br> <span style="font-style:italic;">VAE-MNMF</it><br>
+		<label for="clean">
+				&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspClean Speech<br>
 		</label>
-			<audio id="MMSE" controls loop>
+			<audio id="clean" controls>
 			<source
 					type="audio/mpeg"
-					src="figures/audio/MMSE.wav"/>
+					src="figures/audio/clean_speech.wav"/>
 				</audio>
 			</div>
-		<div class="col">
-			<label for="MAD">
-			&nbsp&nbsp&nbsp&nbspCauchy<br> <span style="font-style:italic;">VAE-MNMF</it><br>
-			</label>
-				<audio id="MAD" controls loop>
-				<source
-						type="audio/mpeg"
-						src="figures/audio/MAD.wav"/>
-					</audio>
-		</div>
-		<div class="col">
-			<label for="MNMF">
-			&nbsp&nbsp&nbsp&nbspCauchy <span style="font-style:italic;">MNMF</it><br>
-			</label>
-				<audio id="MNMF" controls loop>
-				<source
-						type="audio/mpeg"
-						src="figures/audio/MAD.wav"/>
-					</audio>
-		</div>
+
 	</div>
+
 	<div class="multiCol">
 		<div class="col">
-			<label for="Noisy">
-	&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspNoisy<br>
+			<label for="gaussian">
+			&nbsp&nbsp&nbsp	&nbsp&nbsp&nbsp	&nbsp&nbsp&nbsp	&nbsp&nbspGaussian<br>
+				&nbsp&nbsp&nbsp	&nbsp&nbsp&nbsp	&nbsp&nbsp&nbsp <span style="font-style:italic;">VAE-MNMF</it><br>
+			</label>
+				<audio id="gaussian" controls>
+				<source
+						type="audio/mpeg"
+						src="figures/audio/Gaussian.wav"/>
+					</audio>
+		</div>
+		<div class="col">
+			<label for="Cauchy">
+				&nbsp	&nbsp&nbsp&nbsp&nbsp	&nbsp&nbsp&nbsp&nbsp	&nbsp&nbsp&nbsp&nbspCauchy<br>
+					&nbsp	&nbsp&nbsp&nbsp&nbsp	&nbsp&nbsp	&nbsp&nbsp <span style="font-style:italic;">VAE-MNMF</it><br>
 	</label>
-	<audio id="Noisy" controls loop>
+	<audio id="Cauchy" controls>
 	<source
 			type="audio/mpeg"
-			src="figures/audio/Noisy.wav"/>
+			src="figures/audio/Cauchy.wav"/>
 		</audio>
 	</div>
 	<div class="col">
-		<label for="MMSE">
-		&nbsp&nbsp&nbsp&nbspGaussian <span style="font-style:italic;">VAE-MNMF</it><br>
+		<label for="cauchy_nmf">
+&nbsp&nbsp&nbsp&nbsp	&nbsp&nbsp&nbsp&nbsp	&nbsp&nbsp&nbsp&nbsp	&nbspCauchy<br>
+	&nbsp&nbsp&nbsp&nbsp	&nbsp&nbsp&nbsp&nbsp	&nbsp&nbsp&nbsp&nbsp		&nbsp <span style="font-style:italic;">MNMF</it><br>
 		</label>
-			<audio id="MMSE" controls loop>
+			<audio id="cauchy_nmf" controls>
 			<source
 					type="audio/mpeg"
-					src="figures/audio/MMSE.wav"/>
+					src="figures/audio/Cauchy_NMF.wav"/>
 				</audio>
 			</div>
-		<div class="col">
-			<label for="MAD">
-			&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspMAD<br>
-			</label>
-				<audio id="MAD" controls loop>
-				<source
-						type="audio/mpeg"
-						src="figures/audio/MAD.wav"/>
-					</audio>
-		</div>
 	</div>
+
   </section>
 	<section>
 	<h1>Conclusion</h1>
@@ -1378,7 +1364,7 @@ $$\bold{\bold{\Xi}}{}_{ft}=\mathbb{E}_{\bold{\Phi}\mid\bold{x}}\left[\left(\bold
 </div>
 			<div class='footer'>
 				<img src="css/theme/img/inria-bottom.svg" alt="Logo" />
-				<div id="middlebox">Speech Enhancement with Cauchy Deep Speech Prior</div>
+				<div id="middlebox">Cauchy Speech Enhancement with Deep Speech Prior</div>
 			</div>
 	</div>
 		<script src="lib/js/head.min.js"></script>
